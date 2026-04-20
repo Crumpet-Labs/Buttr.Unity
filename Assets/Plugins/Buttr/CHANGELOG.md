@@ -4,18 +4,70 @@ All notable changes to Buttr will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.4]
+## [2.3.0] - 2026-04-20
 
-### fixed
+Tracks [Buttr.Core 1.3.1](https://github.com/Crumpet-Labs/Buttr.Core/releases/tag/v1.3.1). Drop-in upgrade — no Unity-facing API changes.
 
-- **StaticSingleton** - fixed broken and frankly awful error handling
-- **StaticSingleton** - no longer attempts to resolve the dependency chain if factory override is used
+### Added
 
-## [2.1.2] + [2.1.3] 
+- **Aliasing** — `.As<TAlias>()` on any registration lets consumers resolve the same underlying instance through multiple interfaces. Surfaces on `DIBuilder`, `ScopeBuilder`, and the static `Application` container.
+- **Bulk resolution** — `container.All<T>()` (and `Application.All<T>()`) returns every registration whose concrete type is assignable to `T`. Iteration is zero-alloc via a struct enumerator. Hidden registrations are excluded.
+- **Two new compile-time diagnostics** from the bundled `Buttr.Core.Analyzers`:
+  - `BUTTR013` — alias is not a supertype of the concrete registration (error, with code fix).
+  - `BUTTR014` — duplicate alias key across registrations (error, with code fix).
 
 ### Changed
 
-- **ReadMe**: updated the readme to reference new project location 
+- **Analyzer ownership split** — `BUTTR004`, `BUTTR006`, `BUTTR012` now fire from `Buttr.Core.Analyzers.dll` (shipped under `Assets/Plugins/Buttr/Analyser/`) instead of `Buttr.Unity.SourceGeneration.dll`. Rule IDs and messages are unchanged.
+- **`BUTTR006` scoped per-builder-instance.** Each `ApplicationBuilder` / `DIBuilder` / `ScopeBuilder` is evaluated independently — independent instances in separate files no longer cross-contaminate. Receivers that can't be symbolically identified (inline `new DIBuilder()`, chained fluent returns) fall back to per-source-file grouping. Severity stays a Warning — last-wins override is a legitimate pattern (test doubles, late-binding overrides); it's still surfaced, it just doesn't break the build.
+- **Vendored DLLs refreshed** to Buttr.Core 1.3.1 and Buttr.Injection 1.3.1. `Runtime/Lib/Buttr.Core.dll` and `Runtime/Lib/Buttr.Injection.dll` updated; `.meta` GUIDs preserved.
+
+### Migration
+
+Most consumers need no code changes. `.As<>()` and `All<T>()` are additive, and per-builder `BUTTR006` scoping means typical test suites with `[SetUp]`-fresh builders don't trip it.
+
+- **Deliberate within-builder duplicates** (e.g., a test verifying last-wins overwrite on one builder) still emit a `BUTTR006` warning. The warning doesn't fail the build, but if you've enabled *warnings-as-errors* (`-warnaserror`), suppress per-file with `#pragma warning disable BUTTR006` and a short comment explaining the intent.
+- **Custom implementers of `IConfigurable<TConcrete>` or `IConfigurableCollection`** (rare — these interfaces were designed for consuming, not implementing) must add the new members: `IConfigurable<TConcrete> As<TAlias>()` and `IConfigurableCollection As<TConcrete, TAlias>()` respectively.
+- **Analyzer-assembly-name suppressions** for `BUTTR004`/`006`/`012` (uncommon) should reference `Buttr.Core.Analyzers` instead of `Buttr.Unity.SourceGeneration`. Suppressing by rule ID (the normal path) keeps working.
+
+## [2.2.0] - 2026-04-19
+
+### Package split
+
+The engine-agnostic core has been extracted into a separate .NET library at
+[Crumpet-Labs/Buttr.Core](https://github.com/Crumpet-Labs/Buttr.Core) (v1.0.0).
+This Unity package now vendors `Buttr.Core.dll` and `Buttr.Injection.dll` from
+that repository under `Runtime/Lib/` and adds the Unity-specific bridge on top.
+
+### Changed
+
+- **Package name**: `com.crumpetlabs.buttr` → `com.crumpetlabs.buttr.unity`. Existing users must update their `manifest.json` entry — the git URL stays the same.
+- **Display name**: "Buttr" → "Buttr for Unity".
+- **No more `Runtime/Core/` or `Runtime/Injection/` source folders.** Their assemblies (`Buttr.Core` and `Buttr.Injection`) now ship as precompiled DLLs in `Runtime/Lib/`. Public API surface is unchanged: `ApplicationBuilder`, `Application<T>`, `DIBuilder`, `ScopeBuilder`, `[Inject]`, `IInjectable`, `InjectionProcessor.Register`/`Inject` all behave as before.
+- **Source generator**: renamed from `SourceGeneration.dll` to `Buttr.Unity.SourceGeneration.dll` (same asset GUID, same labels, same generated output).
+- **CMDArgs**: no longer auto-initialises via `[RuntimeInitializeOnLoadMethod]`. The Unity package now registers a bootstrap (`Buttr.Unity.CMDArgsBootstrap`) that calls `CMDArgs.Initialize(Environment.GetCommandLineArgs())` at `SubsystemRegistration`. End users see no behavioural change.
+- **Internal logging**: now routed through a new `Buttr.Core.ButtrLog` facade. The Unity package registers `Buttr.Unity.UnityButtrLogger` at `SubsystemRegistration` to route into `UnityEngine.Debug.Log*`.
+- **`InjectionProcessor` split**: scene-walking helpers (`InjectScene`, `InjectActiveScene`, `InjectAllLoadedScenes`, `InjectGameObject`, `InjectSelfAndChildren`) have moved to a new static class `Buttr.Unity.Injection.InjectionProcessorUnityExtensions`. The pure `Buttr.Injection.InjectionProcessor` now only exposes `Register<T>`, `Inject(object)`, and `Clear()`.
+- **Unity-specific injection types moved**: `MonoInjector`, `SceneInjector`, `MonoInjectStrategy`, and `BehaviourInjectorTooltips` now live under `Runtime/Unity/Injection/` with namespace `Buttr.Unity.Injection` (previously `Buttr.Injection`). Prefab references are preserved via their existing script GUIDs.
+- **`AwaitableUtility`**: moved from `Runtime/Core/Utility/` to `Runtime/Unity/Utility/`. Namespace remains `Buttr.Core` for source compatibility — existing code using `using Buttr.Core; AwaitableUtility.CompletedTask;` continues to compile without changes.
+- **Setup Wizard replaced by a menu item**: the `EditorWindow`-based setup wizard has been retired. Quick Setup now runs via `Tools > Buttr > Setup Project` — one click, same scaffolding behaviour (convention folders, `Program.cs`, `ProgramLoader.cs`, boot scene, build settings, `ProgramLoader` asset wiring). The wizard no longer auto-opens on first project load; existing `EditorPrefs` setup-state keys are unchanged.
+
+### Removed
+
+- Dead interface `Buttr.Core.IApplicationRunner` — internal, zero references across the codebase.
+- `Assets/Plugins/Buttr/Runtime/Core/Buttr.Core.asmdef` and `Assets/Plugins/Buttr/Runtime/Injection/Buttr.Injection.asmdef` — assemblies now ship as precompiled DLLs.
+- `Editor/SetupWizard/`: wizard UI, UXML, USS, images, models, views, mediators, presenter, enums, and wizard-only utility helpers. Only `ButtrProjectScaffolder` (and `ButtrPostCompileHook`) remain — they run the same setup work triggered now by the menu item.
+- The "Skip Conventions" setup mode — it existed only as a wizard option and performed no scaffolding. Users who want Buttr without conventions simply don't run the menu item.
+
+### Migration
+
+If you only use `[Inject]`, `IInjectable`, `ApplicationBuilder`, `Application<T>`, `ScopeBuilder`, `DIBuilder`, or the `SceneInjector` / `MonoInjector` MonoBehaviours, no code changes are required.
+
+If your own asmdef file referenced `Buttr.Core` or `Buttr.Injection` by name or GUID, change it to reference `Buttr.Unity` (which transitively exposes both). If you need direct API access without going through `Buttr.Unity`, add `"Buttr.Core.dll"` and `"Buttr.Injection.dll"` to its `precompiledReferences` (with `"overrideReferences": true`).
+
+If you called any of the Unity-only `InjectionProcessor` scene helpers (`InjectScene`, `InjectActiveScene`, `InjectAllLoadedScenes`, `InjectGameObject`, `InjectSelfAndChildren`) directly, change the class name to `InjectionProcessorUnityExtensions` (in namespace `Buttr.Unity.Injection`). Method signatures are unchanged.
+
+In your project's `Packages/manifest.json`, update the package name from `com.crumpetlabs.buttr` to `com.crumpetlabs.buttr.unity`. The git URL is unchanged.
 
 ## [2.1.1] - 2026-03-14
 

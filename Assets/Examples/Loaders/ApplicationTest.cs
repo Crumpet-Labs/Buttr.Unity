@@ -3,6 +3,8 @@ using Buttr.Unity;
 using Examples;
 using UnityEngine;
 
+#pragma warning disable BUTTR006 
+
 namespace Buttr.Core {
     // [CreateAssetMenu(fileName = "UnityContainer", menuName = "Buttr/Examples/Loaders/Container", order = 0)]
     public sealed class ApplicationTestLoader : UnityApplicationLoaderBase {
