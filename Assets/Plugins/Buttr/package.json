@@ -1,6 +1,6 @@
 {
   "name": "com.crumpetlabs.buttr.unity",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "displayName": "Buttr for Unity",
   "description": "Unity bridge for Buttr — a lightweight dependency-injection container. Vendors the engine-agnostic Buttr.Core and Buttr.Injection assemblies and adds MonoBehaviour, ScriptableObject, and scene-walking integration.",
   "unity": "6000.0",

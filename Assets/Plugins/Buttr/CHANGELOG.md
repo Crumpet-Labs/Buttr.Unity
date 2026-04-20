@@ -4,6 +4,31 @@ All notable changes to Buttr will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-04-20
+
+Tracks [Buttr.Core 1.3.0](https://github.com/Crumpet-Labs/Buttr.Core/releases/tag/v1.3.0). Drop-in upgrade — no Unity-facing API changes.
+
+### Added
+
+- **Aliasing** — `.As<TAlias>()` on any registration lets consumers resolve the same underlying instance through multiple interfaces. Surfaces on `DIBuilder`, `ScopeBuilder`, and the static `Application` container.
+- **Bulk resolution** — `container.All<T>()` (and `Application.All<T>()`) returns every registration whose concrete type is assignable to `T`. Iteration is zero-alloc via a struct enumerator. Hidden registrations are excluded.
+- **Two new compile-time diagnostics** from the bundled `Buttr.Core.Analyzers`:
+  - `BUTTR013` — alias is not a supertype of the concrete registration (error, with code fix).
+  - `BUTTR014` — duplicate alias key across registrations (error, with code fix).
+
+### Changed
+
+- **Analyzer ownership split** — `BUTTR004`, `BUTTR006`, `BUTTR012` now fire from the new `Buttr.Core.Analyzers.dll` (shipped under `Assets/Plugins/Buttr/Analyser/`) instead of `Buttr.Unity.SourceGeneration.dll`. Rule IDs, categories, severities, and messages are unchanged — consumers see identical diagnostics, just from a different assembly.
+- **Vendored DLLs refreshed** to Buttr.Core 1.3.0 and Buttr.Injection 1.3.0. `Runtime/Lib/Buttr.Core.dll` and `Runtime/Lib/Buttr.Injection.dll` updated; `.meta` GUIDs preserved.
+
+### Migration
+
+No code changes required. `.As<>()` and `All<T>()` are additive. If you suppressed `BUTTR004`/`006`/`012` by analyzer-assembly name (uncommon), update the suppression to reference `Buttr.Core.Analyzers` — suppressing by rule ID (the normal path) keeps working.
+
+### Verification
+
+A durable smoke test ships under `Assets/Examples/AliasingSmokeTest.cs` (editor-only). `Tools > Buttr > Aliasing Smoke Test` exercises the runtime alias + `All<T>()` surface. Adding `BUTTR_ANALYZER_SMOKE` to Scripting Define Symbols turns the file's gated block into a one-shot analyzer trip for `BUTTR013`/`BUTTR014`.
+
 ## [2.2.0] - 2026-04-19
 
 ### Package split
