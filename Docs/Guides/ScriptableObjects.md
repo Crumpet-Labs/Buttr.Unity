@@ -125,7 +125,7 @@ builder.Resolvers.AddSingleton<AttackHandler>(m_MeleeHandler);
 builder.Resolvers.AddSingleton<AttackHandler>(m_RangedHandler);
 
 // Later:
-foreach (var handler in Application.All<AttackHandler>()) {
+foreach (var handler in Application<AttackHandler>.All()) {
     // Fan-out to every registered handler
 }
 ```

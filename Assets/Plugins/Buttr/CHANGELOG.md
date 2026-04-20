@@ -4,6 +4,19 @@ All notable changes to Buttr will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-04-20
+
+Tracks [Buttr.Core 1.3.2](https://github.com/Crumpet-Labs/Buttr.Core/releases/tag/v1.3.2). Renames the bulk-resolution surface on the global `Application` container.
+
+### Changed
+
+- **`Application.All<T>()` → `Application<T>.All()`.** The bulk-resolution surface now lives on the same generic type as its single-instance counterpart (`Application<T>.Get()`). The non-generic `Application` class is removed. Behaviour is identical — same struct enumerator, zero-alloc iteration, hidden registrations still excluded. Side benefit: no more ambiguity against `UnityEngine.Application` at call sites that also `using UnityEngine;`.
+- **Vendored DLLs refreshed** to Buttr.Core 1.3.2, Buttr.Injection 1.3.2, and Buttr.Core.Analyzers 1.3.2. `.meta` GUIDs preserved.
+
+### Migration
+
+Mechanical. Replace `Application.All<TFoo>()` with `Application<TFoo>.All()` at each call site. If your call site also has `using UnityEngine;`, you can drop any `global::` qualifications or `using` aliases that were working around the previous `Application` name clash.
+
 ## [2.3.0] - 2026-04-20
 
 Tracks [Buttr.Core 1.3.1](https://github.com/Crumpet-Labs/Buttr.Core/releases/tag/v1.3.1). Drop-in upgrade — no Unity-facing API changes.

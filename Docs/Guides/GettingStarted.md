@@ -124,7 +124,7 @@ var app = builder.Build();
 var foo = Application<IFoo>.Get();
 
 // Bulk resolve — every registration assignable to IFoo, zero-alloc
-foreach (var item in Application.All<IFoo>()) { /* ... */ }
+foreach (var item in Application<IFoo>.All()) { /* ... */ }
 
 // Dispose — cleans up all resolved IDisposables
 app.Dispose();
