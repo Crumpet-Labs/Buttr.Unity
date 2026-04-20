@@ -18,16 +18,17 @@ Tracks [Buttr.Core 1.3.0](https://github.com/Crumpet-Labs/Buttr.Core/releases/ta
 
 ### Changed
 
-- **Analyzer ownership split** — `BUTTR004`, `BUTTR006`, `BUTTR012` now fire from the new `Buttr.Core.Analyzers.dll` (shipped under `Assets/Plugins/Buttr/Analyser/`) instead of `Buttr.Unity.SourceGeneration.dll`. Rule IDs, categories, severities, and messages are unchanged — consumers see identical diagnostics, just from a different assembly.
+- **Analyzer ownership split** — `BUTTR004`, `BUTTR006`, `BUTTR012` now fire from `Buttr.Core.Analyzers.dll` (shipped under `Assets/Plugins/Buttr/Analyser/`) instead of `Buttr.Unity.SourceGeneration.dll`. Rule IDs and messages are unchanged.
+- **`BUTTR006` promoted from Warning to Error**, and scoped per-builder-instance. Duplicate registrations on a single builder now fail the build; independent `ApplicationBuilder` / `DIBuilder` / `ScopeBuilder` instances no longer cross-contaminate.
 - **Vendored DLLs refreshed** to Buttr.Core 1.3.0 and Buttr.Injection 1.3.0. `Runtime/Lib/Buttr.Core.dll` and `Runtime/Lib/Buttr.Injection.dll` updated; `.meta` GUIDs preserved.
 
 ### Migration
 
-No code changes required for consumers. `.As<>()` and `All<T>()` are additive on the surface you call. If you _implement_ `IConfigurable<TConcrete>` or `IConfigurableCollection` directly (rare — these interfaces were designed for consuming, not implementing), add the new members: `IConfigurable<TConcrete> As<TAlias>()` and `IConfigurableCollection As<TConcrete, TAlias>()` respectively. If you suppressed `BUTTR004`/`006`/`012` by analyzer-assembly name (uncommon), update the suppression to reference `Buttr.Core.Analyzers` — suppressing by rule ID (the normal path) keeps working.
+Most consumers need no code changes. `.As<>()` and `All<T>()` are additive, and the per-builder scope of `BUTTR006` means typical test suites with `[SetUp]`-fresh builders won't trip it.
 
-### Verification
-
-A durable smoke test ships under `Assets/Examples/AliasingSmokeTest.cs` (editor-only). `Tools > Buttr > Aliasing Smoke Test` exercises the runtime alias + `All<T>()` surface. Adding `BUTTR_ANALYZER_SMOKE` to Scripting Define Symbols turns the file's gated block into a one-shot analyzer trip for `BUTTR013`/`BUTTR014`.
+- **Deliberate within-builder duplicates** (e.g., a test verifying last-wins overwrite on a single builder) fail to build. Remove the duplicate or add `#pragma warning disable BUTTR006` above the block with a short comment explaining the intent.
+- **Custom implementers of `IConfigurable<TConcrete>` or `IConfigurableCollection`** (rare — these interfaces were designed for consuming, not implementing) must add the new members: `IConfigurable<TConcrete> As<TAlias>()` and `IConfigurableCollection As<TConcrete, TAlias>()` respectively.
+- **Analyzer-assembly-name suppressions** for `BUTTR004`/`006`/`012` (uncommon) should reference `Buttr.Core.Analyzers` instead of `Buttr.Unity.SourceGeneration`. Suppressing by rule ID (the normal path) keeps working.
 
 ## [2.2.0] - 2026-04-19
 

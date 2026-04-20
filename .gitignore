@@ -101,3 +101,9 @@ InitTestScene*.unity*
 # Ignore temporaries from GameCI
 /[Aa]rtifacts/
 /[Cc]odeCoverage/
+
+# Private session retrospectives — never commit
+/Docs/Retrospectives/
+
+# Working drafts / internal design documents — kept local, not published
+/Docs/Drafts/
