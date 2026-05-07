@@ -4,11 +4,7 @@ using UnityEngine;
 
 namespace Buttr.Editor.Scaffolding {
     internal static class ButtrMenuItemsUtility {
-        public static bool HasConventionStructure() {
-            return File.Exists(
-                Path.Combine(Application.dataPath, "_Project", $"{Application.productName}.asmdef")
-            );
-        }
+        public static bool HasConventionStructure() => ButtrLayout.HasConventionStructure();
 
         public static string GetSelectedFolder() {
             var selected = Selection.activeObject;
@@ -36,26 +32,14 @@ namespace Buttr.Editor.Scaffolding {
 
         public static string FindPackageRoot() {
             var folder = GetSelectedFolder();
-            var projectAsmdef = Path.Combine(Application.dataPath, "_Project", "_Project.asmdef");
 
             while (false == string.IsNullOrEmpty(folder)) {
                 var asmdefFiles = Directory.GetFiles(folder, "*.asmdef", SearchOption.TopDirectoryOnly);
 
-                if (asmdefFiles.Length > 0) {
-                    var isProjectRoot = false;
+                if (asmdefFiles.Length > 0 && false == ButtrLayout.IsProjectRoot(folder))
+                    return folder;
 
-                    foreach (var file in asmdefFiles) {
-                        if (Path.GetFullPath(file) == Path.GetFullPath(projectAsmdef)) {
-                            isProjectRoot = true;
-                            break;
-                        }
-                    }
-
-                    if (false == isProjectRoot)
-                        return folder;
-                }
-
-                if (Path.GetFileName(folder) == "_Project")
+                if (ButtrLayout.IsProjectRoot(folder))
                     return null;
 
                 var parent = Path.GetDirectoryName(folder);
@@ -75,7 +59,7 @@ namespace Buttr.Editor.Scaffolding {
 
             var normalised = root.Replace('\\', '/');
 
-            if (normalised.Contains("/Core/"))
+            if (normalised.Contains($"/{ButtrLayout.CoreFolder}/"))
                 return PackageType.Core;
 
             return PackageType.Feature;

@@ -15,14 +15,14 @@ namespace Buttr.Editor.Scaffolding {
         public void Execute() {
             var (ns, name) = m_PackageFolder.InferPackage();
             var projectName = ButtrPackageScaffolderUtility.GetRootNamespace();
-            var folder = m_PackageFolder.EnsureSubFolder("Loaders");
+            var folder = m_PackageFolder.EnsureSubFolder(ButtrLayout.LoadersFolder);
             folder.WriteFileIfNew($"{name}Loader.cs", new ButtrLoaderTemplate(projectName, ns, name, m_Type).Generate(), m_RefreshAssetDatabase);
-            
+
             var relative = m_PackageFolder.Replace(Application.dataPath.Replace('/', '\\'), "").TrimStart('/', '\\');
-            $"{name}Loader".QueuePendingAsset($"Assets/{relative}/Loaders/{name}Loader.asset");
+            $"{name}Loader".QueuePendingAsset($"Assets/{relative}/{ButtrLayout.LoadersFolder}/{name}Loader.asset");
         }
     }
-    
+
     internal readonly ref struct AddInstanceCommand {
         private readonly string m_PackageFolder;
         private readonly PackageType m_Type;

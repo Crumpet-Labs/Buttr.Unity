@@ -9,13 +9,12 @@ namespace Buttr.Editor.Scaffolding {
         [MenuItem("Assets/Buttr/Packages/New Feature", false, BasePriority)]
         private static void NewFeature() {
             var parent = ButtrMenuItemsUtility.GetSelectedFolder();
-            var featuresFolder = Path.Combine(Application.dataPath, "_Project", "Features");
+            var featuresFolder = ButtrLayout.RootSubpath(ButtrLayout.FeaturesFolder);
 
-            if (false == parent.Replace('\\', '/').Contains("/Features"))
+            if (false == parent.Replace('\\', '/').Contains($"/{ButtrLayout.FeaturesFolder}"))
                 parent = featuresFolder;
 
             ButtrNewPackagePopup.Show(parent, PackageType.Feature);
-            Debug.Log("[Buttr] New Feature popup — wire ButtrNewPackagePopup.Show() here");
         }
 
         [MenuItem("Assets/Buttr/Packages/New Feature", true)]
@@ -26,13 +25,12 @@ namespace Buttr.Editor.Scaffolding {
         [MenuItem("Assets/Buttr/Packages/New Core", false, BasePriority + 1)]
         private static void NewCorePackage() {
             var parent = ButtrMenuItemsUtility.GetSelectedFolder();
-            var coreFolder = Path.Combine(Application.dataPath, "_Project", "Core");
+            var coreFolder = ButtrLayout.RootSubpath(ButtrLayout.CoreFolder);
 
-            if (false == parent.Replace('\\', '/').Contains("/Core"))
+            if (false == parent.Replace('\\', '/').Contains($"/{ButtrLayout.CoreFolder}"))
                 parent = coreFolder;
 
             ButtrNewPackagePopup.Show(parent, PackageType.Core);
-            Debug.Log("[Buttr] New Core Package popup — wire ButtrNewPackagePopup.Show() here");
         }
 
         [MenuItem("Assets/Buttr/Packages/New Core", true)]
@@ -43,13 +41,12 @@ namespace Buttr.Editor.Scaffolding {
         [MenuItem("Assets/Buttr/Packages/New UI", false, BasePriority + 1)]
         private static void NewUIPackage() {
             var parent = ButtrMenuItemsUtility.GetSelectedFolder();
-            var coreFolder = Path.Combine(Application.dataPath, "_Project", "UI");
+            var uiFolder = ButtrLayout.RootSubpath(ButtrLayout.UIFolder);
 
-            if (false == parent.Replace('\\', '/').Contains("/UI"))
-                parent = coreFolder;
+            if (false == parent.Replace('\\', '/').Contains($"/{ButtrLayout.UIFolder}"))
+                parent = uiFolder;
 
             ButtrNewPackagePopup.Show(parent, PackageType.UI);
-            Debug.Log("[Buttr] New UI Package popup — wire ButtrNewPackagePopup.Show() here");
         }
 
         [MenuItem("Assets/Buttr/Packages/New UI", true)]

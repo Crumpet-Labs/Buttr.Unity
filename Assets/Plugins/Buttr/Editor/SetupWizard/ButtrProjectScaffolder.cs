@@ -13,20 +13,6 @@ namespace Buttr.Editor.SetupWizard {
     /// Phase 2 (post-compilation via <see cref="ButtrPostCompileHook"/>): ProgramLoader asset + wiring.
     /// </summary>
     internal sealed class ButtrProjectScaffolder {
-        internal const string SetupVersionKey = "Buttr.SetupVersion";
-        internal const string PendingAssetCreationKey = "Buttr.PendingAssetCreation";
-        internal const string CatalogFolder = "Catalog";
-        internal const string RootFolder = "_Project";
-        internal const string SceneName = "Main.unity";
-        internal const string ProgramLoaderAssetName = "ProgramLoader.asset";
-
-        private static readonly string[] ConventionFolders = {
-            "Core",
-            "Features",
-            "Shared",
-            CatalogFolder,
-        };
-
         private readonly string m_ProjectName;
         private readonly string m_ButtrVersion;
 
@@ -35,13 +21,17 @@ namespace Buttr.Editor.SetupWizard {
             m_ButtrVersion = buttrVersion;
         }
 
-        internal static bool HasBeenSetUp => EditorPrefs.HasKey(SetupVersionKey);
-        internal static string SetupVersion => EditorPrefs.GetString(SetupVersionKey, string.Empty);
+        internal static bool HasBeenSetUp => EditorPrefs.HasKey(ButtrLayout.SetupVersionKey);
+        internal static string SetupVersion => EditorPrefs.GetString(ButtrLayout.SetupVersionKey, string.Empty);
 
         [MenuItem("Tools/Buttr/Setup Project")]
         private static void SetupProjectMenuItem() {
-            const string buttrVersion = "2.2.0"; // TODO: read from package.json at runtime
-            new ButtrProjectScaffolder(Application.productName, buttrVersion).ExecuteQuickSetup();
+            new ButtrProjectScaffolder(Application.productName, ResolveButtrVersion()).ExecuteQuickSetup();
+        }
+
+        private static string ResolveButtrVersion() {
+            var info = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(ButtrProjectScaffolder).Assembly);
+            return info?.version ?? "unknown";
         }
 
         /// <summary>
@@ -63,35 +53,35 @@ namespace Buttr.Editor.SetupWizard {
                 ConfigureBuildSettings();
                 SetEditorPref();
 
-                EditorPrefs.SetInt(PendingAssetCreationKey, 1);
+                EditorPrefs.SetInt(ButtrLayout.PendingAssetCreationKey, 1);
 
                 Debug.Log("[Buttr] Phase 1 complete — folders, scripts, boot scene, and build settings configured.");
                 Debug.Log("[Buttr] ProgramLoader asset will be created and wired automatically after script compilation.");
             }
             catch (Exception ex) {
-                EditorPrefs.SetInt(PendingAssetCreationKey, 0);
+                EditorPrefs.SetInt(ButtrLayout.PendingAssetCreationKey, 0);
                 Debug.LogError($"[Buttr] Setup failed: {ex.Message}");
                 Debug.LogException(ex);
             }
         }
 
         private void CreateRootFolder() {
-            var path = RootPath();
+            var path = ButtrLayout.RootPath();
 
             if (Directory.Exists(path)) {
-                Debug.Log($"[Buttr] {RootFolder}/ already exists — skipping");
+                Debug.Log($"[Buttr] {ButtrLayout.RootFolder}/ already exists — skipping");
                 return;
             }
 
             Directory.CreateDirectory(path);
-            Debug.Log($"[Buttr] Created {RootFolder}/");
+            Debug.Log($"[Buttr] Created {ButtrLayout.RootFolder}/");
         }
 
         private void CreateSubFolders() {
-            var root = RootPath();
+            var root = ButtrLayout.RootPath();
             var created = 0;
 
-            foreach (var folder in ConventionFolders) {
+            foreach (var folder in ButtrLayout.ConventionFolders) {
                 var path = Path.Combine(root, folder);
 
                 if (Directory.Exists(path)) continue;
@@ -101,14 +91,14 @@ namespace Buttr.Editor.SetupWizard {
             }
 
             if (created > 0)
-                Debug.Log($"[Buttr] Scaffolded {created} convention folder{(created > 1 ? "s" : "")}: {string.Join(", ", ConventionFolders)}");
+                Debug.Log($"[Buttr] Scaffolded {created} convention folder{(created > 1 ? "s" : "")}: {string.Join(", ", ButtrLayout.ConventionFolders)}");
             else
                 Debug.Log("[Buttr] All convention folders already exist");
         }
 
         private void GenerateAssemblyDefinition() {
             var fileName = $"{m_ProjectName}.asmdef";
-            var path = Path.Combine(RootPath(), fileName);
+            var path = Path.Combine(ButtrLayout.RootPath(), fileName);
 
             if (File.Exists(path)) {
                 Debug.Log($"[Buttr] {fileName} already exists — skipping");
@@ -139,7 +129,7 @@ namespace Buttr.Editor.SetupWizard {
         }
 
         private void GenerateProgramCs() {
-            var path = Path.Combine(RootPath(), "Program.cs");
+            var path = Path.Combine(ButtrLayout.RootPath(), ButtrLayout.ProgramScriptName);
 
             if (File.Exists(path)) {
                 Debug.Log("[Buttr] Program.cs already exists — skipping");
@@ -171,7 +161,7 @@ namespace {sanitisedName} {{
         }
 
         private void GenerateProgramLoader() {
-            var path = Path.Combine(RootPath(), "Core", "ProgramLoader.cs");
+            var path = Path.Combine(ButtrLayout.RootPath(), ButtrLayout.ProgramLoaderScriptName);
 
             if (File.Exists(path)) {
                 Debug.Log("[Buttr] ProgramLoader.cs already exists — skipping");
@@ -203,12 +193,12 @@ namespace {sanitisedName} {{
 ";
 
             File.WriteAllText(path, content);
-            Debug.Log("[Buttr] Generated Loaders/ProgramLoader.cs");
+            Debug.Log("[Buttr] Generated ProgramLoader.cs");
         }
 
         private void CreateBootScene() {
-            var scenePath = $"Assets/{RootFolder}/{SceneName}";
-            var diskPath = Path.Combine(RootPath(), SceneName);
+            var scenePath = $"Assets/{ButtrLayout.RootFolder}/{ButtrLayout.SceneName}";
+            var diskPath = Path.Combine(ButtrLayout.RootPath(), ButtrLayout.SceneName);
 
             if (File.Exists(diskPath)) {
                 Debug.Log("[Buttr] Main.unity already exists — skipping");
@@ -224,7 +214,7 @@ namespace {sanitisedName} {{
         }
 
         private void ConfigureBuildSettings() {
-            var scenePath = $"Assets/{RootFolder}/{SceneName}";
+            var scenePath = $"Assets/{ButtrLayout.RootFolder}/{ButtrLayout.SceneName}";
             var scenes = EditorBuildSettings.scenes;
 
             foreach (var existing in scenes) {
@@ -259,15 +249,15 @@ namespace {sanitisedName} {{
                 Debug.LogException(ex);
             }
             finally {
-                EditorPrefs.SetInt(PendingAssetCreationKey, 0);
+                EditorPrefs.SetInt(ButtrLayout.PendingAssetCreationKey, 0);
             }
         }
 
         private static UnityApplicationLoaderBase CreateProgramLoaderAsset() {
-            var assetPath = $"Assets/{RootFolder}/{CatalogFolder}/{ProgramLoaderAssetName}";
+            var assetPath = $"Assets/{ButtrLayout.RootFolder}/{ButtrLayout.LoadersFolder}/{ButtrLayout.ProgramLoaderAssetName}";
 
             if (AssetDatabase.LoadAssetAtPath<ScriptableObject>(assetPath) != null) {
-                Debug.Log($"[Buttr] {ProgramLoaderAssetName} already exists — skipping");
+                Debug.Log($"[Buttr] {ButtrLayout.ProgramLoaderAssetName} already exists — skipping");
                 return null;
             }
 
@@ -288,17 +278,15 @@ namespace {sanitisedName} {{
             var instance = ScriptableObject.CreateInstance(programLoaderType);
             AssetDatabase.CreateAsset(instance, assetPath);
             AssetDatabase.SaveAssets();
-            
-            Debug.Log($"[Buttr] Created {CatalogFolder}/{ProgramLoaderAssetName}");
+
+            Debug.Log($"[Buttr] Created {ButtrLayout.LoadersFolder}/{ButtrLayout.ProgramLoaderAssetName}");
             return instance as UnityApplicationLoaderBase;
         }
 
         private void SetEditorPref() {
             var version = string.IsNullOrEmpty(m_ButtrVersion) ? "unknown" : m_ButtrVersion;
-            EditorPrefs.SetString(SetupVersionKey, version);
+            EditorPrefs.SetString(ButtrLayout.SetupVersionKey, version);
         }
-
-        private static string RootPath() => Path.Combine(Application.dataPath, RootFolder);
 
         /// <summary>
         /// Sanitises a project name into a valid C# namespace identifier.
@@ -331,19 +319,4 @@ namespace {sanitisedName} {{
         }
     }
 
-    /// <summary>
-    /// Runs after every domain reload. If a pending asset creation flag is set,
-    /// creates the ProgramLoader ScriptableObject asset and wires it into the boot scene.
-    /// </summary>
-    [InitializeOnLoad]
-    internal static class ButtrPostCompileHook {
-        static ButtrPostCompileHook() {
-            switch (EditorPrefs.GetInt(ButtrProjectScaffolder.PendingAssetCreationKey, 0)) {
-                case 1: ButtrProjectScaffolder.ExecutePostCompileSetup(); break;
-                default: return;
-            }
-
-            EditorApplication.delayCall += ButtrProjectScaffolder.ExecutePostCompileSetup;
-        }
-    }
 }

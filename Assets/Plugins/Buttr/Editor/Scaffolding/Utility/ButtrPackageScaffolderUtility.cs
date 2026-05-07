@@ -13,12 +13,9 @@ namespace Buttr.Editor.Scaffolding {
         /// e.g. _Project/Features/Inventory → ProjectName.Features.Inventory
         /// </summary>
         public static string ResolveNamespace(this string parentFolder, string packageName) {
-            var dataPath = Application.dataPath;
-            var projectFolder = Path.Combine(dataPath, "_Project");
-    
-            projectFolder = projectFolder.Replace('\\', '/');
+            var projectFolder = ButtrLayout.RootPath().Replace('\\', '/');
             parentFolder = parentFolder.Replace('\\', '/');
-    
+
             if (false == parentFolder.StartsWith(projectFolder)) {
                 return packageName;
             }
@@ -40,23 +37,27 @@ namespace Buttr.Editor.Scaffolding {
         }
 
         /// <summary>
-        /// Reads the root namespace from the _Project.asmdef file.
+        /// Reads the root namespace from the project's asmdef in <c>Assets/_Project</c>.
         /// Falls back to the project folder name.
         /// </summary>
         public static string GetRootNamespace() {
-            var asmdefPath = Path.Combine(Application.dataPath, "_Project", "_Project.asmdef");
+            var root = ButtrLayout.RootPath();
 
-            if (File.Exists(asmdefPath)) {
-                var content = File.ReadAllText(asmdefPath);
-                var key = "\"rootNamespace\":";
-                var index = content.IndexOf(key, StringComparison.Ordinal);
+            if (Directory.Exists(root)) {
+                var asmdefs = Directory.GetFiles(root, "*.asmdef", SearchOption.TopDirectoryOnly);
 
-                if (index >= 0) {
-                    var start = content.IndexOf('"', index + key.Length) + 1;
-                    var end = content.IndexOf('"', start);
+                if (asmdefs.Length > 0) {
+                    var content = File.ReadAllText(asmdefs[0]);
+                    var key = "\"rootNamespace\":";
+                    var index = content.IndexOf(key, StringComparison.Ordinal);
 
-                    if (start > 0 && end > start)
-                        return content.Substring(start, end - start);
+                    if (index >= 0) {
+                        var start = content.IndexOf('"', index + key.Length) + 1;
+                        var end = content.IndexOf('"', start);
+
+                        if (start > 0 && end > start)
+                            return content.Substring(start, end - start);
+                    }
                 }
             }
 
@@ -66,10 +67,10 @@ namespace Buttr.Editor.Scaffolding {
         }
 
         /// <summary>
-        /// Finds the Catalog folder at _Project/Catalog.
+        /// Finds the Catalog folder at <c>Assets/_Project/Catalog</c>.
         /// </summary>
         public static string FindCatalogFolder(this string fromPath) {
-            var catalogPath = Path.Combine(Application.dataPath, "_Project", "Catalog");
+            var catalogPath = ButtrLayout.RootSubpath(ButtrLayout.CatalogFolder);
             return Directory.Exists(catalogPath) ? catalogPath : null;
         }
 
@@ -111,7 +112,6 @@ namespace Buttr.Editor.Scaffolding {
         /// </summary>
         public static (string ns, string name) InferPackage(this string folderPath) {
             var name = Path.GetFileName(folderPath);
-            var projectAsmdef = Path.Combine(Application.dataPath, "_Project", "_Project.asmdef");
             var packageRoot = folderPath;
 
             var current = folderPath;
@@ -119,24 +119,13 @@ namespace Buttr.Editor.Scaffolding {
             while (false == string.IsNullOrEmpty(current)) {
                 var asmdefFiles = Directory.GetFiles(current, "*.asmdef", SearchOption.TopDirectoryOnly);
 
-                if (asmdefFiles.Length > 0) {
-                    var isProjectRoot = false;
-
-                    foreach (var file in asmdefFiles) {
-                        if (Path.GetFullPath(file) == Path.GetFullPath(projectAsmdef)) {
-                            isProjectRoot = true;
-                            break;
-                        }
-                    }
-
-                    if (false == isProjectRoot) {
-                        name = Path.GetFileName(current);
-                        packageRoot = current;
-                        break;
-                    }
+                if (asmdefFiles.Length > 0 && false == ButtrLayout.IsProjectRoot(current)) {
+                    name = Path.GetFileName(current);
+                    packageRoot = current;
+                    break;
                 }
 
-                if (Path.GetFileName(current) == "_Project")
+                if (ButtrLayout.IsProjectRoot(current))
                     break;
 
                 var parent = Path.GetDirectoryName(current);
@@ -155,13 +144,13 @@ namespace Buttr.Editor.Scaffolding {
         /// Stored as a semicolon-delimited list of typeName|assetPath pairs in EditorPrefs.
         /// </summary>
         public static void QueuePendingAsset(this string typeName, string assetPath) {
-            var existing = EditorPrefs.GetString("Buttr.PendingAssets", string.Empty);
+            var existing = EditorPrefs.GetString(ButtrLayout.PendingAssetsKey, string.Empty);
             var entry = $"{typeName}|{assetPath}";
 
             if (existing.Contains(entry)) return;
 
             var updated = string.IsNullOrEmpty(existing) ? entry : $"{existing};{entry}";
-            EditorPrefs.SetString("Buttr.PendingAssets", updated);
+            EditorPrefs.SetString(ButtrLayout.PendingAssetsKey, updated);
         }
 
         /// <summary>

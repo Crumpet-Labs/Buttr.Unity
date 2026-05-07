@@ -7,26 +7,25 @@ using UnityEngine;
 namespace Buttr.Editor.Scaffolding {
     [InitializeOnLoad]
     internal static class ButtrPostCompileHook {
-        private const string k_PENDING_ASSETS = "Buttr.PendingAssets";
-        
         static ButtrPostCompileHook() {
-            var pending = EditorPrefs.GetString(k_PENDING_ASSETS, string.Empty);
+            var pending = EditorPrefs.GetString(ButtrLayout.PendingAssetsKey, string.Empty);
+            var hasPendingSetup = EditorPrefs.GetInt(ButtrLayout.PendingAssetCreationKey, 0) == 1;
 
-            if (string.IsNullOrEmpty(pending) && false == EditorPrefs.GetBool(ButtrProjectScaffolder.PendingAssetCreationKey, false))
+            if (string.IsNullOrEmpty(pending) && false == hasPendingSetup)
                 return;
 
             EditorApplication.delayCall += RunPostCompileSetup;
         }
 
         private static void RunPostCompileSetup() {
-            if (EditorPrefs.GetBool(ButtrProjectScaffolder.PendingAssetCreationKey, false))
+            if (EditorPrefs.GetInt(ButtrLayout.PendingAssetCreationKey, 0) == 1)
                 ButtrProjectScaffolder.ExecutePostCompileSetup();
 
-            var pending = EditorPrefs.GetString(k_PENDING_ASSETS, string.Empty);
+            var pending = EditorPrefs.GetString(ButtrLayout.PendingAssetsKey, string.Empty);
 
             if (string.IsNullOrEmpty(pending)) return;
 
-            EditorPrefs.DeleteKey(k_PENDING_ASSETS);
+            EditorPrefs.DeleteKey(ButtrLayout.PendingAssetsKey);
 
             var entries = pending.Split(';');
 
