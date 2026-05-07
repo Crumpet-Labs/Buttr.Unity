@@ -1,6 +1,6 @@
 # Buttr for Unity
 
-A lightweight dependency-injection container with an opinionated architecture for Unity 6+. Vendors the engine-agnostic [Buttr.Core](https://github.com/Crumpet-Labs/Buttr.Core) library and adds MonoBehaviour, ScriptableObject, and scene-walking integration on top.
+A lightweight dependency-injection container with an opinionated architecture for Unity 6+. Adds MonoBehaviour, ScriptableObject, and scene-walking integration on top of the engine-agnostic [Buttr.Core](https://github.com/Crumpet-Labs/Buttr.Core) library.
 
 - **Source-generated injection** — `[Inject]` fields on `partial` MonoBehaviours. Zero runtime reflection.
 - **Roslyn analyzers** — compile-time diagnostics for duplicate registrations, missing dependencies, alias mismatches, and more.
@@ -9,13 +9,21 @@ A lightweight dependency-injection container with an opinionated architecture fo
 
 ## Installation
 
-`Window > Package Manager` → `+` → **Install package from git URL**:
+Buttr.Unity depends on Buttr.Core. UPM doesn't auto-resolve git-URL dependencies, so install Core **first**, then Unity. In `Window > Package Manager` → `+` → **Install package from git URL**:
 
-```
-https://github.com/Crumpet-Labs/Buttr.Unity.git?path=Assets/Plugins/Buttr
-```
+1. Install Buttr.Core:
 
-Pin a version by appending `#v2.3.0`. Requires Unity 6.0+.
+   ```
+   https://github.com/Crumpet-Labs/Buttr.Core.git?path=package
+   ```
+
+2. Install Buttr.Unity:
+
+   ```
+   https://github.com/Crumpet-Labs/Buttr.Unity.git?path=Assets/Plugins/Buttr
+   ```
+
+Pin versions by appending a tag (e.g. `#v1.3.3` for Core, `#v2.4.0` for Unity). Requires Unity 6.0+.
 
 ## Getting started
 

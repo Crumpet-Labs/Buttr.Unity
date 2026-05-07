@@ -15,7 +15,18 @@ Switches from vendoring the Buttr.Core DLLs to depending on the new `com.crumpet
 
 ### Migration
 
-Automatic for Unity projects that use a manifest pointing at `com.crumpetlabs.buttr.unity` via git URL — UPM resolves the new `com.crumpetlabs.buttr` dep transitively. Projects that had both Buttr.Core DLLs AND another package vendoring the same DLLs (duplicate-assembly error) will now resolve cleanly because only one package ships them.
+UPM does not auto-resolve git-URL dependencies, so existing projects must install `com.crumpetlabs.buttr` (Buttr.Core) before updating `com.crumpetlabs.buttr.unity`. In `Packages/manifest.json`:
+
+```json
+"dependencies": {
+  "com.crumpetlabs.buttr": "https://github.com/Crumpet-Labs/Buttr.Core.git?path=package#v1.3.3",
+  "com.crumpetlabs.buttr.unity": "https://github.com/Crumpet-Labs/Buttr.Unity.git?path=Assets/Plugins/Buttr#v2.4.0"
+}
+```
+
+Or via Package Manager → **Install package from git URL**: install Buttr.Core first, then Buttr.Unity.
+
+Projects that had both Buttr.Core DLLs AND another package vendoring the same DLLs (duplicate-assembly error) will now resolve cleanly because only one package ships them.
 
 If you were referencing the vendored DLL paths directly (e.g. in a custom csproj), update to `Packages/com.crumpetlabs.buttr/Runtime/Lib/Buttr.Core.dll`.
 
