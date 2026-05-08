@@ -4,6 +4,18 @@ All notable changes to Buttr will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-05-08
+
+Adds a built-in scene loader so projects can load build-settings scenes from the application boot pipeline without writing a custom loader.
+
+### Added
+
+- **`SceneLoader`** (`Runtime/Unity/Loaders/SceneLoader.cs`) — `ScriptableObject` deriving from `UnityApplicationLoaderBase`. Create via `Assets > Create > Buttr > Loaders > Scene`, configure with a scene name (must match a build-settings scene) and load mode (`LoadSceneMode.Additive` by default). Drop into `UnityApplicationBoot.m_ApplicationLoaders[]` after your `ProgramLoader` to load gameplay scenes once the DI container is built — the boot iterates loaders sequentially, awaiting each, so anything in the new scene (`SceneInjector`, `MonoInjector`, package `Instance`s) starts with a ready container. `UnloadAsync` is a no-op — additive callers manage their own teardown.
+
+### Migration
+
+None required. `SceneLoader` is purely additive — existing projects with custom scene-loading code continue to work unchanged.
+
 ## [2.4.2] - 2026-05-08
 
 Bug-fix release. Three pre-existing scaffolding bugs surfaced during demo prep and one regression from 2.4.1's layout change. No API surface changes.
