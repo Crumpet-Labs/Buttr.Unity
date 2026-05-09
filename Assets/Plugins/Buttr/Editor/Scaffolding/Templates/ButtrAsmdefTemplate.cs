@@ -11,7 +11,6 @@ namespace Buttr.Editor.Scaffolding {
     ""name"": ""{m_Ns}"",
     ""rootNamespace"": ""{m_Ns}"",
     ""references"": [
-        ""Buttr.Core"",
         ""Buttr.Unity""
     ],
     ""includePlatforms"": [],

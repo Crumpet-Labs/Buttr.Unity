@@ -4,6 +4,14 @@ All notable changes to Buttr will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1] - 2026-05-08
+
+Patch release. v2.5.0 shipped `SceneLoader.cs` without its `.meta` file, so Unity could not import the script. Upgrade if you're on 2.5.0.
+
+### Fixed
+
+- **`SceneLoader.cs.meta` now included in the package.** The release commit for 2.5.0 staged the `.cs` but not the auto-generated `.meta`. Without it, Unity's asset database has no GUID for the script and `Assets > Create > Buttr > Loaders > Scene` doesn't appear.
+
 ## [2.5.0] - 2026-05-08
 
 Adds a built-in scene loader so projects can load build-settings scenes from the application boot pipeline without writing a custom loader.

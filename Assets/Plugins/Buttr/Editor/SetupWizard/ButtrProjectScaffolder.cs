@@ -110,7 +110,6 @@ namespace Buttr.Editor.SetupWizard {
     ""name"": ""{sanitisedName}"",
     ""rootNamespace"": ""{sanitisedName}"",
     ""references"": [
-        ""Buttr.Core"",
         ""Buttr.Unity""
     ],
     ""includePlatforms"": [],

@@ -17,9 +17,11 @@ namespace Buttr.Editor.Tests.Scaffolding {
         }
 
         [Test]
-        public void Generate_ReferencesButtrCore() {
+        public void Generate_DoesNotReferenceButtrCoreAsmdef() {
+            // Buttr.Core ships as a precompiled DLL (auto-referenced), not as an asmdef.
+            // Listing "Buttr.Core" in references would be a dangling reference in Unity.
             var result = new ButtrAsmdefTemplate("MyGame.Features.Inventory").Generate();
-            Assert.That(result, Does.Contain("Buttr.Core"));
+            Assert.That(result, Does.Not.Contain("\"Buttr.Core\""));
         }
 
         [Test]

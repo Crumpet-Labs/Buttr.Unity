@@ -40,12 +40,12 @@ namespace Buttr.Editor.Scaffolding {
         // ── Path helpers ─────────────────────────────────────────────────
 
         /// <summary>Absolute disk path to <c>Assets/_Project</c>.</summary>
-        public static string RootPath() =>
-            Path.Combine(Application.dataPath, RootFolder);
+        public static string RootPath() 
+            => Path.Combine(Application.dataPath, RootFolder);
 
         /// <summary>Absolute disk path to a subfolder under <c>Assets/_Project</c>.</summary>
-        public static string RootSubpath(string subfolder) =>
-            Path.Combine(Application.dataPath, RootFolder, subfolder);
+        public static string RootSubpath(string subfolder) 
+            => Path.Combine(Application.dataPath, RootFolder, subfolder);
 
         // ── State checks ─────────────────────────────────────────────────
 

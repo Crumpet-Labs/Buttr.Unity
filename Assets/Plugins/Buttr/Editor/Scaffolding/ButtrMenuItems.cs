@@ -1,6 +1,4 @@
-using System.IO;
 using UnityEditor;
-using UnityEngine;
 
 namespace Buttr.Editor.Scaffolding {
     internal static class ButtrMenuItems {
