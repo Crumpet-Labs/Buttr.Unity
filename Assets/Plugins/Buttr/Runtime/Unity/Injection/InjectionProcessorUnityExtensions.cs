@@ -11,11 +11,19 @@ namespace Buttr.Unity.Injection {
     /// </summary>
     public static class InjectionProcessorUnityExtensions {
         public static void InjectScene(Scene scene) {
+            var buffer = ListPool<MonoBehaviour>.Get();
+            
             foreach (var root in scene.GetRootGameObjects()) {
-				if(root.TryGetComponent<MonoBehaviour>(out var mono)) {
-                    InjectSelfAndChildren(mono);
+                buffer.Clear();
+                root.GetComponentsInChildren(true, buffer); 
+                
+                foreach (var mb in buffer) {
+                    if (mb is IInjectable injectable)
+                        InjectionProcessor.Inject(injectable);
                 }
             }
+            
+            ListPool<MonoBehaviour>.Release(buffer);
         }
 
         public static void InjectActiveScene() {

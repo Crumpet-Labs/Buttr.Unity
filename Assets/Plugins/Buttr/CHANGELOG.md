@@ -4,6 +4,14 @@ All notable changes to Buttr will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.3] - 2026-05-18
+
+Patch release. resolved potential issue with InjectionProcessorUnityExtensions... again... 
+
+### Fixed
+
+- **'InjectionProcessorUnityExtensions.cs'** reverted TryGetCheck replaced with gameobject check
+
 ## [2.5.2] - 2026-05-18
 
 Patch release. resolved potential issue with InjectionProcessorUnityExtensions
