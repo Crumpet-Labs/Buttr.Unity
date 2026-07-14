@@ -22,7 +22,6 @@ namespace {m_Ns} {{
             return new ConfigurableCollection()
                 .Register(builder.Resolvers.AddSingleton<I{m_Name}Service, {m_Name}Service>())
                 .Register(builder.Resolvers.AddSingleton<{m_Name}Model>())
-                .Register(builder.Resolvers.AddSingleton<{m_Name}Presenter>())
                 .Register(builder.Resolvers.AddSingleton<{m_Name}Mediator>());
         }}
     }}
@@ -36,7 +35,6 @@ namespace {m_Ns} {{
             return new ConfigurableCollection()
                 .Register(builder.Resolvers.AddSingleton<I{m_Name}Service, {m_Name}Service>())
                 .Register(builder.Resolvers.AddSingleton<{m_Name}Model>())
-                .Register(builder.Resolvers.AddSingleton<{m_Name}Presenter>())
                 .Register(builder.Resolvers.AddSingleton<{m_Name}Mediator>());
         }}
     }}
@@ -52,7 +50,6 @@ namespace {m_Ns} {{
             return new ConfigurableCollection()
                 .Register(builder.Resolvers.AddSingleton<I{m_Name}Service, {m_Name}Service>())
                 .Register(builder.Resolvers.AddSingleton<{m_Name}Model>())
-                .Register(builder.Resolvers.AddSingleton<{m_Name}Presenter>())
                 .Register(builder.Resolvers.AddSingleton<{m_Name}View>())
                 .Register(builder.Resolvers.AddSingleton<{m_Name}Mediator>());
         }}

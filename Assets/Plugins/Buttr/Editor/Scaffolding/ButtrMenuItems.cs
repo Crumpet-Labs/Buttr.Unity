@@ -112,16 +112,6 @@ namespace Buttr.Editor.Scaffolding {
             return ButtrMenuItemsUtility.HasConventionStructure() && ButtrMenuItemsUtility.IsInsidePackage();
         }
 
-        [MenuItem("Assets/Buttr/Packages/Add to Package/Logic/Presenter", false, BasePriority)]
-        private static void AddPresenter() {
-            new AddPresenterCommand(ButtrMenuItemsUtility.FindPackageRoot(), true).Execute();
-        }
-
-        [MenuItem("Assets/Buttr/Packages/Add to Package/Logic/Presenter", true)]
-        private static bool AddPresenterValidation() {
-            return ButtrMenuItemsUtility.HasConventionStructure() && ButtrMenuItemsUtility.IsInsidePackage();
-        }
-
         [MenuItem("Assets/Buttr/Packages/Add to Package/Logic/System", false, BasePriority + 1)]
         private static void AddSystem() {
             new AddSystemCommand(ButtrMenuItemsUtility.FindPackageRoot(), true).Execute();
@@ -152,7 +142,17 @@ namespace Buttr.Editor.Scaffolding {
             return ButtrMenuItemsUtility.HasConventionStructure() && ButtrMenuItemsUtility.IsInsidePackage();
         }
 
-        [MenuItem("Assets/Buttr/Packages/Add to Package/Logic/Behaviour", false, BasePriority + 4)]
+        [MenuItem("Assets/Buttr/Packages/Add to Package/Logic/Profile", false, BasePriority + 4)]
+        private static void AddProfile() {
+            new AddProfileCommand(ButtrMenuItemsUtility.FindPackageRoot(), true).Execute();
+        }
+
+        [MenuItem("Assets/Buttr/Packages/Add to Package/Logic/Profile", true)]
+        private static bool AddProfileValidation() {
+            return ButtrMenuItemsUtility.HasConventionStructure() && ButtrMenuItemsUtility.IsInsidePackage();
+        }
+
+        [MenuItem("Assets/Buttr/Packages/Add to Package/Logic/Behaviour", false, BasePriority + 5)]
         private static void AddBehaviour() {
             new AddBehaviourCommand(ButtrMenuItemsUtility.FindPackageRoot(), true).Execute();
         }

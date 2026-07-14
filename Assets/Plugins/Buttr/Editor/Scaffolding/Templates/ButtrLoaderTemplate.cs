@@ -17,19 +17,20 @@ namespace Buttr.Editor.Scaffolding {
                 PackageType.Feature => $@"using System.Threading;
 using Buttr.Core;
 using Buttr.Unity;
+using Buttr.Unity.Injection;
 using UnityEngine;
 
 namespace {m_Ns} {{
     [CreateAssetMenu(fileName = ""{m_Name}Loader"", menuName = ""{m_ProjectName}/Loaders/{m_Name}"", order = 0)]
     public sealed class {m_Name}Loader : UnityApplicationLoaderBase {{
-        [SerializeField] private ScriptableInjector m_Injector;
+        [SerializeField] private ScriptableRegistrar m_Registrar;
 
         private IDIContainer m_Container;
 
         public override Awaitable LoadAsync(CancellationToken cancellationToken) {{
             var builder = new ScopeBuilder({m_Name}Package.Scope);
 
-            m_Injector.Inject(builder);
+            m_Registrar.Inject(builder);
 
             builder.Use{m_Name}();
 
@@ -47,12 +48,14 @@ namespace {m_Ns} {{
                 PackageType.Core => $@"using System.Threading;
 using Buttr.Core;
 using Buttr.Unity;
+using Buttr.Unity.Injection;
 using UnityEngine;
 
 namespace {m_Ns} {{
     [CreateAssetMenu(fileName = ""{m_Name}Loader"", menuName = ""{m_ProjectName}/Loaders/{m_Name}"", order = 0)]
     public sealed class {m_Name}Loader : UnityApplicationLoaderBase {{
         [Header(""Scriptable Objects"")]
+        [SerializeField] private ScriptableRegistrar m_Registrar;
         [SerializeField] private ScriptableInjector m_Injector;
 
         private ApplicationContainer m_Container;
@@ -60,11 +63,13 @@ namespace {m_Ns} {{
         public override Awaitable LoadAsync(CancellationToken cancellationToken) {{
             var builder = new ApplicationBuilder();
 
-            m_Injector.Inject(builder);
+            m_Registrar.Inject(builder);
 
             builder.Use{m_Name}();
 
             m_Container = builder.Build();
+
+            m_Injector.InjectAll();
 
             return AwaitableUtility.CompletedTask;
         }}

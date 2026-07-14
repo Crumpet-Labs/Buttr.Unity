@@ -11,9 +11,9 @@ namespace Buttr.Editor.Tests.Scaffolding {
         }
 
         [Test]
-        public void Generate_InjectsPresenterViaCtor() {
+        public void Generate_InjectsModelViaCtor() {
             var result = new ButtrServiceTemplate("MyGame.Features.Inventory", "Inventory").Generate();
-            Assert.That(result, Does.Contain("public InventoryService(InventoryPresenter presenter)"));
+            Assert.That(result, Does.Contain("public InventoryService(InventoryModel model)"));
         }
     }
 }

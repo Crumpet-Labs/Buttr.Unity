@@ -45,5 +45,67 @@ namespace Buttr.Editor.Tests.Scaffolding {
             var result = new ButtrLoaderTemplate("MyGame", "MyGame.Features.Inventory", "Inventory", PackageType.Feature).Generate();
             Assert.That(result, Does.Contain("m_Container?.Dispose()"));
         }
+
+        [Test]
+        public void Generate_Feature_IncludesInjectionUsing() {
+            var result = new ButtrLoaderTemplate("MyGame", "MyGame.Features.Inventory", "Inventory", PackageType.Feature).Generate();
+            Assert.That(result, Does.Contain("using Buttr.Unity.Injection;"));
+        }
+
+        [Test]
+        public void Generate_Feature_HasRegistrarField() {
+            var result = new ButtrLoaderTemplate("MyGame", "MyGame.Features.Inventory", "Inventory", PackageType.Feature).Generate();
+            Assert.That(result, Does.Contain("ScriptableRegistrar m_Registrar"));
+        }
+
+        [Test]
+        public void Generate_Feature_CallsRegistrarInject() {
+            var result = new ButtrLoaderTemplate("MyGame", "MyGame.Features.Inventory", "Inventory", PackageType.Feature).Generate();
+            Assert.That(result, Does.Contain("m_Registrar.Inject(builder)"));
+        }
+
+        [Test]
+        public void Generate_Feature_DoesNotHaveInjectorField() {
+            var result = new ButtrLoaderTemplate("MyGame", "MyGame.Features.Inventory", "Inventory", PackageType.Feature).Generate();
+            Assert.That(result, Does.Not.Contain("ScriptableInjector m_Injector"));
+        }
+
+        [Test]
+        public void Generate_Core_IncludesInjectionUsing() {
+            var result = new ButtrLoaderTemplate("MyGame", "MyGame.Core.Audio", "Audio", PackageType.Core).Generate();
+            Assert.That(result, Does.Contain("using Buttr.Unity.Injection;"));
+        }
+
+        [Test]
+        public void Generate_Core_HasRegistrarField() {
+            var result = new ButtrLoaderTemplate("MyGame", "MyGame.Core.Audio", "Audio", PackageType.Core).Generate();
+            Assert.That(result, Does.Contain("ScriptableRegistrar m_Registrar"));
+        }
+
+        [Test]
+        public void Generate_Core_CallsRegistrarInject() {
+            var result = new ButtrLoaderTemplate("MyGame", "MyGame.Core.Audio", "Audio", PackageType.Core).Generate();
+            Assert.That(result, Does.Contain("m_Registrar.Inject(builder)"));
+        }
+
+        [Test]
+        public void Generate_Core_HasInjectorField() {
+            var result = new ButtrLoaderTemplate("MyGame", "MyGame.Core.Audio", "Audio", PackageType.Core).Generate();
+            Assert.That(result, Does.Contain("ScriptableInjector m_Injector"));
+        }
+
+        [Test]
+        public void Generate_Core_CallsInjectAll() {
+            var result = new ButtrLoaderTemplate("MyGame", "MyGame.Core.Audio", "Audio", PackageType.Core).Generate();
+            Assert.That(result, Does.Contain("m_Injector.InjectAll()"));
+        }
+
+        [Test]
+        public void Generate_Core_InjectAllAfterBuild() {
+            var result = new ButtrLoaderTemplate("MyGame", "MyGame.Core.Audio", "Audio", PackageType.Core).Generate();
+            var buildIndex = result.IndexOf("m_Container = builder.Build();");
+            var injectAllIndex = result.IndexOf("m_Injector.InjectAll();");
+            Assert.That(injectAllIndex, Is.GreaterThan(buildIndex));
+        }
     }
 }

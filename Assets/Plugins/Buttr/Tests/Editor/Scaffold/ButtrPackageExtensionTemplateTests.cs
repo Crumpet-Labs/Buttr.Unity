@@ -21,7 +21,6 @@ namespace Buttr.Editor.Tests.Scaffolding {
             var result = new ButtrPackageExtensionTemplate("MyGame.Features.Inventory", "Inventory", PackageType.Feature).Generate();
             Assert.That(result, Does.Contain("IInventoryService, InventoryService"));
             Assert.That(result, Does.Contain("InventoryModel"));
-            Assert.That(result, Does.Contain("InventoryPresenter"));
             Assert.That(result, Does.Contain("InventoryMediator"));
         }
 

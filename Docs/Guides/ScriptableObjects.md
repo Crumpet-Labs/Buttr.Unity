@@ -1,35 +1,45 @@
 # ScriptableObjects
 
-ScriptableObjects are first-class in Buttr's architecture — they're how designer-facing data and strategy enter the DI graph. This guide covers the three idiomatic ScriptableObject roles (Configuration, Definition, Handler) and the `ScriptableInjector` that registers them.
+ScriptableObjects are first-class in Buttr's architecture — they're how designer-facing data and strategy enter the DI graph. This guide covers the four idiomatic ScriptableObject roles (Configuration, Definition, Handler, Profile) and the two helpers that connect ScriptableObjects to the container: `ScriptableRegistrar` and `ScriptableInjector`.
 
 For the suffix-level rules see [Conventions](Conventions.md).
 
-## The three ScriptableObject roles
+## The ScriptableObject roles
 
 | Role | Purpose | Stateful? |
 |---|---|---|
 | **Configuration** | Editable settings tuned by designers | No |
 | **Definition** | Extensible "what is this" entries (replaces enums) | No |
 | **Handler** | Stateless, designer-swappable strategy logic | No |
+| **Profile** | Self-contained bundle of data and its own interpretation logic | No |
 
-All three are **stateless** — they describe, not execute. Stateful strategy belongs in a `Behaviour` (plain C# class).
+All four are **stateless** — they describe, not execute. Stateful strategy belongs in a `Behaviour` (plain C# class).
 
-## ScriptableInjector
+## Two helpers, two directions
 
-`ScriptableInjector` is a `[Serializable]` helper class (not a MonoBehaviour) that bulk-registers ScriptableObject assets into a Buttr container. Expose it on a Loader as a `[SerializeField]`, drag your `.asset` references into its list in the Inspector, and call `Inject(builder)` from `LoadAsync`. Internally it builds an Expression-tree-compiled `AddSingleton<TConcrete>().WithFactory(() => instance)` registration for each entry, keyed by each asset's concrete type.
+| Helper | Direction | What it does |
+|---|---|---|
+| `ScriptableRegistrar` | ScriptableObjects **into** the container | Registers `.asset` references as singleton sources, keyed by concrete type |
+| `ScriptableInjector` | Container **into** ScriptableObjects | Resolves `[Inject]` fields on ScriptableObject assets at boot |
+
+> **Renamed in 3.0.0:** `ScriptableRegistrar` is the class previously called `Buttr.Unity.ScriptableInjector`. The `ScriptableInjector` name now belongs to the injection driver. See the [CHANGELOG](https://github.com/Crumpet-Labs/Buttr.Unity/blob/main/Assets/Plugins/Buttr/CHANGELOG.md) migration note.
+
+## ScriptableRegistrar — ScriptableObjects as sources
+
+`ScriptableRegistrar` is a `[Serializable]` helper class (not a MonoBehaviour) that bulk-registers ScriptableObject assets into a Buttr container. Expose it on a Loader as a `[SerializeField]`, drag your `.asset` references into its list in the Inspector, and call `Inject(builder)` from `LoadAsync`. Internally it builds an Expression-tree-compiled `AddSingleton<TConcrete>().WithFactory(() => instance)` registration for each entry, keyed by each asset's concrete type.
 
 Typical flow inside a Loader:
 
 ```csharp
 public sealed class CombatLoader : UnityApplicationLoaderBase {
-    [SerializeField] private ScriptableInjector m_Injector;
+    [SerializeField] private ScriptableRegistrar m_Registrar;
 
     private ApplicationContainer m_Container;
 
     public override Awaitable LoadAsync(CancellationToken ct) {
         var builder = new ApplicationBuilder();
 
-        m_Injector.Inject(builder);   // Registers each ScriptableObject under its concrete type
+        m_Registrar.Inject(builder);   // Registers each ScriptableObject under its concrete type
         builder.Resolvers.AddSingleton<ICombatService, CombatService>();
 
         m_Container = builder.Build();
@@ -43,9 +53,9 @@ public sealed class CombatLoader : UnityApplicationLoaderBase {
 }
 ```
 
-`ScriptableInjector` overloads `Inject(ApplicationBuilder)` and `Inject(IDIBuilder)` — same pattern works inside a `ScopeBuilder` or `DIBuilder` Loader too.
+`ScriptableRegistrar` overloads `Inject(ApplicationBuilder)` and `Inject(IDIBuilder)` — same pattern works inside a `ScopeBuilder` or `DIBuilder` Loader too.
 
-If you need fine-grained control — registering individual assets, applying configuration, or providing a different concrete type — skip `ScriptableInjector` and use `WithFactory` directly:
+If you need fine-grained control — registering individual assets, applying configuration, or providing a different concrete type — skip `ScriptableRegistrar` and use `WithFactory` directly:
 
 ```csharp
 [SerializeField] private CombatConfiguration m_Config;
@@ -63,6 +73,68 @@ public override Awaitable LoadAsync(CancellationToken ct) {
 The `WithFactory` lambda short-circuits Buttr's constructor scan — perfect for ScriptableObjects since they're created by Unity, not by Buttr.
 
 `[SerializeField]` slots on the Loader expose drag-targets in the Inspector. The `.asset` files themselves live in `Catalog/` (see [Conventions](Conventions.md)).
+
+## ScriptableInjector — injecting into ScriptableObjects
+
+Since 3.0.0, ScriptableObjects can be `[Inject]` **targets**, exactly like MonoBehaviours: mark the class `partial`, add `[Inject]` fields, and the source generator emits the `IInjectable` half.
+
+```csharp
+public sealed partial class GameplaySettings : ScriptableObject {
+    [Inject] private IClockService i_Clock;
+}
+```
+
+`ScriptableInjector` is a `[Serializable]` helper that drives injection over a fixed list of ScriptableObject assets at boot. Expose it on a Loader, drag the injectable `.asset` references into its list, and call `InjectAll()` **after** the application container is built:
+
+```csharp
+public sealed class CoreLoader : UnityApplicationLoaderBase {
+    [Header("Scriptable Objects")]
+    [SerializeField] private ScriptableRegistrar m_Registrar;
+    [SerializeField] private ScriptableInjector m_Injector;
+
+    private ApplicationContainer m_Container;
+
+    public override Awaitable LoadAsync(CancellationToken ct) {
+        var builder = new ApplicationBuilder();
+
+        m_Registrar.Inject(builder);
+        builder.UseCore();
+
+        m_Container = builder.Build();
+        m_Injector.InjectAll();       // Resolves [Inject] fields on the listed assets
+        return AwaitableUtility.CompletedTask;
+    }
+
+    public override Awaitable UnloadAsync() {
+        m_Container?.Dispose();
+        return AwaitableUtility.CompletedTask;
+    }
+}
+```
+
+This is the shape the Core Loader scaffolding template generates.
+
+`InjectAll()` resets each asset's `IInjectable.Injected` flag before injecting. A ScriptableObject asset persists across editor play sessions when domain reload is disabled (and across boots on CoreCLR players), so without the reset a second boot would silently skip re-injection and leave stale references.
+
+For a single asset on demand, use the adapter directly:
+
+```csharp
+InjectionProcessorUnityExtensions.Inject(scriptableObject);
+```
+
+It throws an `InjectionException` if the asset is `null` or has no generated injector (no `[Inject]` fields / missing `partial`).
+
+### Application lifetime only
+
+ScriptableObjects resolve from the **application container only** — scoped injection is a compile-time error (**BUTTR020**, with a code fix that removes the scope argument):
+
+```csharp
+public sealed partial class GameplaySettings : ScriptableObject {
+    [Inject("combat")] private ICombatService i_Combat;   // BUTTR020: error
+}
+```
+
+The reason is lifetime: a ScriptableObject asset outlives every scene scope. A scoped dependency injected into a persistent asset would dangle the moment its scope is disposed. Keep scoped dependencies in MonoBehaviours owned by the scope's GameObject; give ScriptableObjects application-lifetime dependencies only.
 
 ## Configurations
 
@@ -113,7 +185,7 @@ public sealed class WeaponDefinition : ScriptableObject {
 }
 ```
 
-Definitions are usually referenced directly from gameplay code (via serialised fields on MonoBehaviours, or looked up by ID through a Registry). They don't always need to be in the DI container — but if they're part of a fixed set loaded at boot, register them via `ScriptableInjector`.
+Definitions are usually referenced directly from gameplay code (via serialised fields on MonoBehaviours, or looked up by ID through a Registry). They don't always need to be in the DI container — but if they're part of a fixed set loaded at boot, register them via `ScriptableRegistrar`.
 
 ## Handlers
 
@@ -149,7 +221,7 @@ foreach (var handler in Application<AttackHandler>.All()) {
 }
 ```
 
-(Or drop both into a single `ScriptableInjector` and call `m_Injector.Inject(builder)` for the same result.)
+(Or drop both into a single `ScriptableRegistrar` and call `m_Registrar.Inject(builder)` for the same result.)
 
 Or key them by ID with `DIBuilder<TKey>` for designer-assigned strategy selection:
 
@@ -162,6 +234,26 @@ var container = builder.Build();
 var chosen = container.Get<AttackHandler>(currentAbilityId);
 chosen.Execute(ctx);
 ```
+
+## Profiles
+
+Profiles are abstract ScriptableObjects that **bundle data and behaviour into a single self-contained unit**. Where a Handler is the "how" paired with a Definition's "what", a Profile collapses both into one asset — the parameters baked into the Profile *are* its identity, and only this Profile's logic knows how to interpret them.
+
+```csharp
+public abstract class GaitProfile : ScriptableObject {
+    public abstract GaitResolution Resolve(float stickMagnitude);
+}
+
+public sealed class BandedGaitProfile : GaitProfile {
+    [SerializeField] private float m_LowSpeed = 1.4f;
+    [SerializeField] private float m_HighSpeed = 2.5f;
+    [SerializeField, Range(0f, 1f)] private float m_SplitPoint = 0.5f;
+
+    public override GaitResolution Resolve(float mag) { /* ... */ }
+}
+```
+
+Profiles are typically consumed by **direct asset reference** — a serialized field on the component or configuration that uses them — rather than through the container, since each asset is a unique self-contained unit with no pairing to resolve. For the "Handler or Profile?" decision test, see [Conventions](Conventions.md).
 
 ## Where assets live
 
@@ -181,8 +273,10 @@ Catalog/Combat/
 ├── CombatConfiguration.asset
 ├── Definitions/
 │   └── SwordDefinition.asset
-└── Handlers/
-    └── MeleeAttackHandler.asset
+├── Handlers/
+│   └── MeleeAttackHandler.asset
+└── Profiles/
+    └── AggressiveCombatProfile.asset
 ```
 
 The right-click scaffolding (`Buttr > Packages > Add to Package`) handles this layout for you. See [Editor Tooling](EditorTooling.md).

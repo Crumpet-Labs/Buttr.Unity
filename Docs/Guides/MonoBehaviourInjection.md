@@ -1,6 +1,6 @@
 # MonoBehaviour Injection
 
-Buttr injects MonoBehaviours via compile-time source generation. A Roslyn source generator walks every MonoBehaviour marked with `[Inject]` fields and generates the resolution code statically — so the field-injection path itself runs zero reflection at runtime. Container build itself uses minimal reflection (constructor scanning to compile factory delegates, alias mapping); resolve-time hot paths are reflection-free.
+Buttr injects MonoBehaviours via compile-time source generation. A Roslyn source generator walks every MonoBehaviour or ScriptableObject marked with `[Inject]` fields and generates the resolution code statically — so the field-injection path itself runs zero reflection at runtime. This guide covers the MonoBehaviour side; for injecting into ScriptableObjects see [ScriptableObjects](ScriptableObjects.md). Container build itself uses minimal reflection (constructor scanning to compile factory delegates, alias mapping); resolve-time hot paths are reflection-free.
 
 ## The basics
 
@@ -90,6 +90,9 @@ InjectionProcessorUnityExtensions.InjectSelfAndChildren(rootMonoBehaviour);
 InjectionProcessorUnityExtensions.InjectScene(myScene);
 InjectionProcessorUnityExtensions.InjectActiveScene();
 InjectionProcessorUnityExtensions.InjectAllLoadedScenes();
+
+// A single ScriptableObject (see the ScriptableObjects guide):
+InjectionProcessorUnityExtensions.Inject(myScriptableObject);
 ```
 
 Both `InjectGameObject` and `InjectSelfAndChildren` expect a `MonoBehaviour` instance — passing a bare `GameObject` throws `InjectionException`. If you only have the GameObject, grab any MonoBehaviour on it first:
@@ -106,11 +109,11 @@ These are the same entry points the `SceneInjector` / `MonoInjector` components 
 MonoBehaviours get field injection. Plain C# classes get **constructor injection** — no attributes needed:
 
 ```csharp
-public sealed class ConsolePresenter {
+public sealed class ConsoleService {
     private readonly ConsoleModel m_Model;
     private readonly ILogger m_Logger;
 
-    public ConsolePresenter(ConsoleModel model, ILogger logger) {
+    public ConsoleService(ConsoleModel model, ILogger logger) {
         m_Model = model;
         m_Logger = logger;
     }
@@ -123,11 +126,12 @@ Constructor parameters are resolved from the container the type is registered in
 
 | Rule | What it catches |
 |---|---|
-| `BUTTR001` | `[Inject]` on a non-`partial` MonoBehaviour |
+| `BUTTR001` | `[Inject]` in a class that isn't `partial` |
 | `BUTTR004` | Constructor parameter type isn't registered anywhere |
 | `BUTTR007`/`008` | `[Inject]` field's resolution path issues |
 | `BUTTR009` | Raw string literal scope key — fires on `[Inject("...")]`, `new ScopeBuilder("...")`, and `ScopeRegistry.Get("...")`. Prefer a `public const string` |
-| `BUTTR011` | `[Inject]` on a non-MonoBehaviour in a context that won't run the source generator |
+| `BUTTR011` | `[Inject]` on a class that is neither a MonoBehaviour nor a ScriptableObject |
+| `BUTTR020` | Scoped `[Inject("…")]` on a ScriptableObject — ScriptableObjects resolve application-lifetime only |
 
 Full catalogue in the [Buttr.Core Analyzers doc](https://github.com/Crumpet-Labs/Buttr.Core/blob/main/Docs/Analyzers.md).
 

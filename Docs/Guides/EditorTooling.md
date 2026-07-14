@@ -32,11 +32,11 @@ In the Project window, right-click inside your `_Project/` folder → `Buttr > P
 
 | Menu | What it scaffolds |
 |---|---|
-| `New Feature` | Full feature package — entry point, asmdef, Components (Model, Presenter, Mediator, View, Service), Contracts, Loader |
+| `New Feature` | Full feature package — entry point, asmdef, Components (Model, Mediator, Service), Contracts, Loader |
 | `New Core` | Same as Feature, but created under `Core/` for engine-agnostic reusability |
 | `New UI` | UI Toolkit variant — `{Name}Instance` MonoBehaviour, `{Name}View` as plain C#, scoped container lifecycle |
 
-Each prompts for a name and gives you checkboxes for optional extras (Handlers, Behaviours, Identifiers, Configurations, Common, Exceptions). Classes are correctly named, sealed, and wired with constructor injection.
+Each prompts for a name and gives you checkboxes for optional extras (Definitions, Handlers, Profiles, Behaviours, Identifiers, Controller, Configurations, Common, Exceptions). Classes are correctly named, sealed, and wired with constructor injection.
 
 **UI packages** specifically scaffold:
 - A `{Name}Instance : MonoBehaviour` that owns a `ScopeBuilder` and exposes a `UIDocument` field in the Inspector.
@@ -50,7 +50,7 @@ This keeps Views testable and decouples them from the GameObject lifecycle.
 
 - **Unity** — Controller, View
 - **Data** — Model, Identifier, Definition, Configuration
-- **Logic** — Presenter, System, Mediator, Handler, Behaviour
+- **Logic** — System, Mediator, Handler, Profile, Behaviour
 - **Infrastructure** — Service + Contract (scaffolded as a pair), Repository, Registry, Loader
 - **Structure** — Extensions
 
@@ -67,7 +67,7 @@ Buttr's editor tooling doesn't:
 
 ## Under the hood
 
-All scaffolding goes through `ButtrProjectScaffolder` in `Assets/Plugins/Buttr/Editor/Scaffolding/`. If you want to extend or customise the templates, that's where they live. Templates are plain `.cs` files with substitution markers — trivial to fork.
+Project setup goes through `ButtrProjectScaffolder` in `Assets/Plugins/Buttr/Editor/SetupWizard/`; package and type scaffolding goes through `ButtrPackageScaffolder` and the commands in `Assets/Plugins/Buttr/Editor/Scaffolding/`. If you want to extend or customise the templates, that's where they live. Templates are plain `.cs` files with substitution markers — trivial to fork.
 
 ## Keyboard shortcuts
 

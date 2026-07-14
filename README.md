@@ -12,7 +12,7 @@
   <a href="https://unity.com"><img src="https://img.shields.io/badge/Unity-6+-black?style=flat-square&logo=unity" alt="Unity 6+"></a>
 </p>
 
-Buttr adds Unity-specific integration on top of the engine-agnostic [Buttr.Core](https://github.com/Crumpet-Labs/Buttr.Core) DI library: source-generated MonoBehaviour injection, ScriptableObject registration, scene-walking injectors, and editor scaffolding for a suffix-driven architecture.
+Buttr adds Unity-specific integration on top of the engine-agnostic [Buttr.Core](https://github.com/Crumpet-Labs/Buttr.Core) DI library: source-generated MonoBehaviour and ScriptableObject injection, ScriptableObject registration, scene-walking injectors, and editor scaffolding for a suffix-driven architecture.
 
 ## Installation
 
@@ -30,7 +30,7 @@ Buttr.Unity depends on Buttr.Core. UPM doesn't auto-resolve git-URL dependencies
    https://github.com/Crumpet-Labs/Buttr.Unity.git?path=Assets/Plugins/Buttr
    ```
 
-Pin versions by appending a tag (e.g. `#v1.3.4` for Core, `#v2.5.1` for Unity). Requires Unity 6.0+.
+Pin versions by appending a tag (e.g. `#v1.4.0` for Core, `#v3.0.0` for Unity). Requires Unity 6.0+.
 
 ## Getting started
 

@@ -38,6 +38,7 @@ namespace Buttr.Editor.Scaffolding {
 
             ToggleOption(PackageOptions.Definitions, "Definitions");
             ToggleOption(PackageOptions.Handlers, "Handlers");
+            ToggleOption(PackageOptions.Profiles, "Profiles");
             ToggleOption(PackageOptions.Behaviours, "Behaviours");
             ToggleOption(PackageOptions.Identifiers, "Identifiers");
             ToggleOption(PackageOptions.Controller, "Controller");

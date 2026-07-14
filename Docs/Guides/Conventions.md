@@ -1,8 +1,15 @@
 # Conventions
 
-Buttr isn't just a DI container — it ships with an opinionated architecture for organising Unity projects. The container works fine on its own, but if you adopt the conventions, you get a project where **every class suffix tells you exactly what it does**. Open any feature, any project, and the shape is immediately legible.
+Buttr is a dependency-injection container first, and the container has no opinion about how you name or organise your code — it works with whatever conventions you already use. What follows is a *separate*, optional layer: an architecture I've leaned on across real projects because it pays for itself.
 
-This guide is the full reference. For a quick tour, see [Getting Started](GettingStarted.md).
+The idea is simple: every type carries a **suffix that says what it does** — `Service`, `View`, `Registry`, `Handler`. That single rule buys two things worth more than they look:
+
+- **It kills analysis paralysis.** You stop staring at a new file wondering where it belongs or what to call it. The front door other features call through? A `Service`. Something that reads the model and renders it? A `View`. The suffix decides, so your attention goes to the code instead of the shape of the folder.
+- **It scales to a team.** Anyone can open a feature they've never seen and read its structure at a glance. Onboarding, review, and handoffs stop leaning on tribal knowledge, because the shape is legible on its own.
+
+None of it is required, and you don't adopt it all at once — reach for the handful of suffixes a feature actually needs (`Service`, `Model`, `View`, `Controller`) and pull in the rest when a problem calls for them. The table below is the full vocabulary, not a checklist.
+
+For a quick tour, see [Getting Started](GettingStarted.md).
 
 ---
 
@@ -34,7 +41,7 @@ Features contain code and feature-specific resources. **All ScriptableObject ass
 
 **Minimise MonoBehaviours.** If something doesn't need Unity lifecycle hooks or `GetComponent<T>` access, it should be a plain C# class that gets injected. Don't make something a MonoBehaviour just because it's convenient.
 
-**Scope.** Buttr handles feature-level architecture — singleton services, presenters, mediators, models, and registries that live once per feature. Per-instance entity management (hundreds of enemies, projectiles, spawned objects each with their own state) is a different domain that lives within the System and Controller layer, using whatever approach fits the project's performance needs. Buttr provides the structure those systems plug into, but doesn't prescribe how individual instances are managed.
+**Scope.** Buttr handles feature-level architecture — singleton services, mediators, models, and registries that live once per feature. Per-instance entity management (hundreds of enemies, projectiles, spawned objects each with their own state) is a different domain that lives within the System and Controller layer, using whatever approach fits the project's performance needs. Buttr provides the structure those systems plug into, but doesn't prescribe how individual instances are managed.
 
 ---
 
@@ -49,12 +56,12 @@ Features contain code and feature-specific resources. **All ScriptableObject ass
 | | Definition | ScriptableObject entry point into a feature | ScriptableObject |
 | | Configuration | ScriptableObject providing editable settings | ScriptableObject |
 | **Logic** | View | Observes and displays Model data — reads only | Class |
-| | Presenter | Explicit operations on Models — the only type that mutates state | Class |
 | | System | Reads Model state and executes it continuously | Class |
-| | Mediator | Listens to events, filters and routes towards Presenters | Class |
-| | Handler | Stateless ScriptableObject — designer-facing, editor-swappable logic | ScriptableObject |
+| | Mediator | Listens to events, filters and routes towards Services | Class |
+| | Handler | Stateless ScriptableObject — designer-facing logic; pairs with a Definition for data | ScriptableObject |
+| | Profile | Self-contained ScriptableObject bundling data and its own interpretation logic | ScriptableObject |
 | | Behaviour | Stateful strategy — code-facing, drives a System's update loop | Class |
-| **Infrastructure** | Service | Public API of a feature — the entry point other features inject | Class |
+| **Infrastructure** | Service | Public API of a feature and its write-owner — the only type that mutates Model state; the entry point other features inject | Class |
 | | Repository | CRUD operations on local persistent storage | Interface |
 | | Registry | Tracks active runtime objects by ID | Class |
 | | Loader | ScriptableObject that bootstraps a feature at boot time | ScriptableObject |
@@ -67,9 +74,9 @@ Features contain code and feature-specific resources. **All ScriptableObject ass
 
 These types touch GameObjects and live in Unity's lifecycle. All MonoBehaviours live in the `MonoBehaviours/` folder within a feature — no exceptions. Consumers should never have to hunt for something to drag onto a GameObject.
 
-**Controllers** coordinate Unity components, injected services, and event systems on a GameObject. They manage lifecycle (`OnEnable`, `OnDisable`), own subscriptions, and expose a public API for other systems to interact with. Controllers are always MonoBehaviours. Controllers don't mutate Model state directly — they route actions to Presenters or raise events that Mediators handle.
+**Controllers** coordinate Unity components, injected services, and event systems on a GameObject. They manage lifecycle (`OnEnable`, `OnDisable`), own subscriptions, and expose a public API for other systems to interact with. Controllers are always MonoBehaviours. Controllers don't mutate Model state directly — they route actions to the feature's Service or raise events that Mediators handle.
 
-**Instances** are MonoBehaviours that own a scoped container's lifecycle on a GameObject. They build a `ScopeBuilder`, inject ScriptableObjects via `ScriptableInjector`, register the feature's package, and dispose the container on `OnDestroy`. Used when a feature needs its own isolated scope tied to a specific GameObject — most commonly UI panels backed by UI Toolkit.
+**Instances** are MonoBehaviours that own a scoped container's lifecycle on a GameObject. They build a `ScopeBuilder`, register ScriptableObjects via `ScriptableRegistrar`, register the feature's package, and dispose the container on `OnDestroy`. Used when a feature needs its own isolated scope tied to a specific GameObject — most commonly UI panels backed by UI Toolkit.
 
 ---
 
@@ -83,7 +90,7 @@ These types hold or describe data. No behaviour, no dependencies, no awareness o
 
 **Definitions** are ScriptableObjects that serve as extensible entry points into features. Where you might traditionally use an enum (`WeaponType.Sword`), a Definition (`SwordDefinition.asset`) lets designers create new entries without touching code. Describe *what* something is.
 
-**Configurations** are ScriptableObjects providing editable settings for packages and features. Typically injected into the application container via `ScriptableInjector`, letting designers tune behaviour without touching code. See [ScriptableObjects](ScriptableObjects.md).
+**Configurations** are ScriptableObjects providing editable settings for packages and features. Typically registered into the application container via `ScriptableRegistrar`, letting designers tune behaviour without touching code. See [ScriptableObjects](ScriptableObjects.md).
 
 ---
 
@@ -91,7 +98,7 @@ These types hold or describe data. No behaviour, no dependencies, no awareness o
 
 These types make decisions. They contain the rules, strategies, and coordination logic that drive your features.
 
-**Views** observe and display Model data but never write to it. Plain C# classes that receive dependencies via constructor injection. For UI Toolkit features, a View takes a `UIDocument` reference and queries visual elements from it. All mutations flow back through a Presenter.
+**Views** observe and display Model data but never write to it. Plain C# classes that receive dependencies via constructor injection. For UI Toolkit features, a View takes a `UIDocument` reference and queries visual elements from it. All mutations flow back through the feature's Service.
 
 ```csharp
 public sealed class InventoryView {
@@ -103,26 +110,33 @@ public sealed class InventoryView {
 }
 ```
 
-**Presenters** are plain C# classes performing explicit operations on Models — the **only** type that mutates Model state. Constructor-injected, live in `Components/`.
-
-```csharp
-public sealed class ConsolePresenter {
-    private readonly ConsoleModel m_Model;
-
-    public ConsolePresenter(ConsoleModel model) {
-        m_Model = model;
-    }
-
-    public void Log(ConsoleCategory category, string message)
-        => m_Model.AddLog(new ConsoleLog(category, DateTime.Now, message));
-}
-```
-
 **Systems** read Model state and execute it continuously. Where a View *renders* the Model visually, a System *acts* on it mechanically — movement, ticking Behaviours, simulation logic. Systems own the update loop and switch/tick the active Behaviour. Typically plain C# classes injected into the MonoBehaviour that hosts them.
 
-**Mediators** are self-contained event listeners. Bind to events in their constructor, apply filtering or transformation, route results to the relevant Presenter — or exit early if the event isn't applicable. Nothing calls into a Mediator from the outside; they react implicitly. Unbind on disposal. Live in `Components/`, use standard C# events or event buses — not UnityEvents.
+**Mediators** are self-contained event listeners. Bind to events in their constructor, apply filtering or transformation, route results to the relevant Service — or exit early if the event isn't applicable. Nothing calls into a Mediator from the outside; they react implicitly. Unbind on disposal. Live in `Components/`, use standard C# events or event buses — not UnityEvents.
 
-**Handlers** are abstract ScriptableObjects providing a **feature-specific public API** for strategic logic. **Stateless** and **designer-facing** — a designer drags a different Handler asset onto a component and behaviour changes without a recompile. Handlers pair with `DIBuilder<TKey>` for runtime resolution by key. Think of Definitions as the "what" and Handlers as the "how."
+The next three suffixes — **Handler**, **Profile**, and **Behaviour** — are all swappable logic, and two questions tell them apart:
+
+- **Does it hold runtime state?** Yes → **Behaviour**: a plain C# strategy your System constructs and ticks. No → it's a designer-facing ScriptableObject; ask the next question.
+- **Is its data its own, or in a separate Definition?** Its own → **Profile** (self-contained). A separate Definition → **Handler** (paired with that Definition for its data).
+
+The comparison table at the end of this section is the quick reference; the detail below is the *why*.
+
+**Handlers** are abstract ScriptableObjects providing a **feature-specific public API** for strategic logic. **Stateless** and **designer-facing** — a designer drags a different Handler asset onto a component and behaviour changes without a recompile. Handlers pair with `DIBuilder<TKey>` for runtime resolution by key, and typically pair with a **Definition** that supplies the data. Think of Definitions as the "what" and Handlers as the "how." Parameters on a Handler describe behaviour quirks, not identity — many Definitions can share one Handler.
+
+**Profiles** are abstract ScriptableObjects that **bundle data and behaviour into a single self-contained unit**. Where a Handler is the "how" paired with a Definition's "what", a Profile collapses both into one asset — the parameters baked into the Profile **are** its identity, and only this Profile's logic knows how to interpret them. Use a Profile when data and behaviour are inseparable: a different parameter set would require different interpretation logic, and vice versa. Each concrete Profile subclass defines its own interpretation; designers author each `.asset` instance as a unique self-contained unit, no pairing required.
+
+```csharp
+public abstract class GaitProfile : ScriptableObject {
+    public abstract GaitResolution Resolve(float stickMagnitude);
+}
+
+public sealed class BandedGaitProfile : GaitProfile {
+    [SerializeField] private float m_LowSpeed = 1.4f;
+    [SerializeField] private float m_HighSpeed = 2.5f;
+    [SerializeField, Range(0f, 1f)] private float m_SplitPoint = 0.5f;
+    public override GaitResolution Resolve(float mag) { /* ... */ }
+}
+```
 
 **Behaviours** are lightweight strategy objects providing a **feature-specific Tick method** to drive a System's update loop. **Stateful** and **code-facing** — constructed with a Model reference, switched at runtime through code, ticked by the host System. Only the active Behaviour ticks each frame.
 
@@ -138,13 +152,15 @@ public sealed class SprintBehaviour : IMovementBehaviour {
 }
 ```
 
-| | Handler | Behaviour |
-|---|---------|-----------|
-| **State** | Stateless | Stateful — constructed with Model |
-| **Audience** | Designer-facing — swappable in editor | Code-facing — switched at runtime |
-| **Type** | ScriptableObject | Plain C# class |
-| **API** | Feature-specific public methods | Feature-specific Tick method |
-| **Resolution** | `DIBuilder<TKey>` by key | Owned and ticked by host System |
+| | Handler | Profile | Behaviour |
+|---|---------|---------|-----------|
+| **Data carries identity** | No — data describes behaviour quirks | Yes — data IS the identity | N/A — runtime, not asset |
+| **State** | Stateless | Stateless (asset data is fixed) | Stateful — constructed with Model |
+| **Audience** | Designer-facing — swappable in editor | Designer-facing — swappable in editor | Code-facing — switched at runtime |
+| **Type** | ScriptableObject | ScriptableObject | Plain C# class |
+| **API** | Feature-specific public methods | Feature-specific public methods | Feature-specific Tick method |
+| **Pairs with** | A Definition for data | Nothing — self-contained | Owned by host System |
+| **Resolution** | `DIBuilder<TKey>` by key | Direct asset reference | Owned and ticked by host System |
 
 ---
 
@@ -152,18 +168,24 @@ public sealed class SprintBehaviour : IMovementBehaviour {
 
 These types connect features to the outside world — APIs, persistence, runtime state tracking. All infrastructure types are injected and live in `Components/`.
 
-**Services** are the public API of a feature — the entry point other features inject. Some services communicate with external APIs, asset systems, or remote databases. Others wrap Registries and internal logic behind a clean interface. The commonality: a Service is the boundary — the front door that other features knock on. Services pair with Contracts to define their public interface.
+**Services** are the public API of a feature — the entry point other features inject — and its **write-owner**: the only type that mutates Model state. Discrete changes (a command, an event, a user action) flow through a Service method; continuous, per-frame changes belong to a System instead. A Service is the boundary — the front door other features knock on — and because one operation often has to touch several Models at once (spend currency *and* add the item), it's the natural owner of that coordination. Some Services wrap external APIs, asset systems, or remote databases; others wrap Registries and internal logic behind a clean interface. Services pair with Contracts to define their public interface.
 
 ```csharp
-public sealed class StatsService : IStatsService {
-    private readonly StatsRegistry m_Registry;
+public sealed class InventoryService : IInventoryService {
+    private readonly InventoryModel m_Inventory;
+    private readonly CurrencyModel m_Currency;
 
-    public StatsService(StatsRegistry registry) {
-        m_Registry = registry;
+    public InventoryService(InventoryModel inventory, CurrencyModel currency) {
+        m_Inventory = inventory;
+        m_Currency = currency;
     }
 
-    public float Get(EntityId entityId, StatDefinition definition)
-        => m_Registry.Get(entityId).Get(definition);
+    public BuyResult Buy(ItemId item, int price) {
+        if (m_Currency.Balance < price) return BuyResult.NotEnoughFunds;
+        m_Currency.Spend(price);
+        m_Inventory.Add(item);
+        return BuyResult.Success;
+    }
 }
 ```
 
@@ -175,17 +197,15 @@ public sealed class StatsService : IStatsService {
 
 ---
 
-## Structure
+## Structure layer
 
 **Extensions** are a core pattern. Internal extension methods are preferred over private class methods to keep classes focused. Extensions should be functional — take input, return a value, don't require access to private state. If a method needs many values to function, that's a signal to rethink the structure.
 
 ```csharp
 internal static class InventoryExtensions {
-    public static bool TryStack(this InventoryModel inventory, ItemId id, int amount) {
+    public static int RemainingSpace(this InventoryModel inventory, ItemId id) {
         var slot = inventory.FindSlot(id);
-        if (slot == null || slot.Count + amount > slot.MaxStack) return false;
-        slot.Count += amount;
-        return true;
+        return slot == null ? 0 : slot.MaxStack - slot.Count;
     }
 }
 ```
@@ -205,8 +225,8 @@ Features/Console/
 ├── ConsolePackage.cs           # Package entry point — always at root
 ├── {Namespace}.asmdef
 ├── README.md                   # Optional
-├── Components/                 # Injected types: Presenters, Models,
-│   ├── ConsolePresenter.cs     #   Services, Repositories, Registries,
+├── Components/                 # Injected types: Services, Models,
+│   ├── ConsoleService.cs       #   Repositories, Registries,
 │   ├── ConsoleModel.cs         #   Mediators, Systems, Views
 │   ├── ConsoleView.cs
 │   └── ConsoleMediator.cs
@@ -234,14 +254,19 @@ The `Catalog/` folder mirrors the feature structure for ScriptableObject data as
 Catalog/
 ├── Console/
 │   └── ConsoleConfiguration.asset
-└── Combat/
-    ├── CombatConfiguration.asset
-    ├── Definitions/
-    │   ├── MeleeWeaponDefinition.asset
-    │   └── RangedWeaponDefinition.asset
-    └── Handlers/
-        ├── MeleeAttackHandler.asset
-        └── RangedAttackHandler.asset
+├── Combat/
+│   ├── CombatConfiguration.asset
+│   ├── Definitions/
+│   │   ├── MeleeWeaponDefinition.asset
+│   │   └── RangedWeaponDefinition.asset
+│   └── Handlers/
+│       ├── MeleeAttackHandler.asset
+│       └── RangedAttackHandler.asset
+└── Movement/
+    ├── MovementConfiguration.asset
+    └── Profiles/
+        ├── WalkRunGaitProfile.asset
+        └── RunSprintGaitProfile.asset
 ```
 
 ---

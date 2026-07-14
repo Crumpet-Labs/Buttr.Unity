@@ -67,5 +67,17 @@ namespace Buttr.Unity.Injection {
 
             ListPool<MonoBehaviour>.Release(buffer);
         }
+
+        public static void Inject(ScriptableObject scriptableObject) {
+            if (scriptableObject == null)
+                throw new InjectionException("Cannot inject into a null ScriptableObject");
+
+            if (scriptableObject is not IInjectable)
+                throw new InjectionException(
+                    $"ScriptableObject '{scriptableObject.GetType().Name}' has no generated injector — " +
+                    "add [Inject] fields and mark the class partial");
+
+            InjectionProcessor.Inject(scriptableObject);
+        }
     }
 }

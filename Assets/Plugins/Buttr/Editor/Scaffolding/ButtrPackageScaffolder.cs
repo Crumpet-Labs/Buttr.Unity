@@ -37,7 +37,6 @@ namespace Buttr.Editor.Scaffolding {
                 new ButtrREADMETemplate(packageName, type).Generate());
 
             new AddModelCommand(root, false).Execute();
-            new AddPresenterCommand(root, false).Execute();
             new AddMediatorCommand(root, false).Execute();
             new AddServiceAndContractCommand(root, false).Execute();
 
@@ -59,6 +58,9 @@ namespace Buttr.Editor.Scaffolding {
             
             if (options.HasFlag(PackageOptions.Handlers))
                 new AddHandlerCommand(root, false).Execute();
+
+            if (options.HasFlag(PackageOptions.Profiles))
+                new AddProfileCommand(root, false).Execute();
 
             if (options.HasFlag(PackageOptions.Behaviours))
                 new AddBehaviourCommand(root, false).Execute();

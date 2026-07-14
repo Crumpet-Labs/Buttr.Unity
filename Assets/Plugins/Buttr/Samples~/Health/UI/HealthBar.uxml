@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="HealthBar.uss" />
+    <ui:VisualElement name="health-root" class="health-root">
+        <ui:VisualElement name="health-track" class="health-track">
+            <ui:VisualElement name="health-fill" class="health-fill" />
+        </ui:VisualElement>
+        <ui:Label name="health-label" class="health-label" text="100 / 100" />
+    </ui:VisualElement>
+</ui:UXML>

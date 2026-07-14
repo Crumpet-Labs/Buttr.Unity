@@ -2,9 +2,9 @@
 
 A lightweight dependency-injection container with an opinionated architecture for Unity 6+. Adds MonoBehaviour, ScriptableObject, and scene-walking integration on top of the engine-agnostic [Buttr.Core](https://github.com/Crumpet-Labs/Buttr.Core) library.
 
-- **Source-generated injection** — `[Inject]` fields on `partial` MonoBehaviours. The field-injection path runs zero reflection at runtime; container build itself uses minimal reflection (constructor scanning, alias mapping).
+- **Source-generated injection** — `[Inject]` fields on `partial` MonoBehaviours and ScriptableObjects. The field-injection path runs zero reflection at runtime; container build itself uses minimal reflection (constructor scanning, alias mapping).
 - **Roslyn analyzers** — compile-time diagnostics for duplicate registrations, missing dependencies, alias mismatches, and more.
-- **Suffix-driven architecture** — Models, Presenters, Services, Handlers, Behaviours. Every class name tells you what it does.
+- **Suffix-driven architecture** — Models, Services, Handlers, Behaviours. Every class name tells you what it does.
 - **Editor scaffolding** — one-click project setup, right-click to scaffold conventions-compliant packages.
 
 ## Installation
@@ -23,7 +23,7 @@ Buttr.Unity depends on Buttr.Core. UPM doesn't auto-resolve git-URL dependencies
    https://github.com/Crumpet-Labs/Buttr.Unity.git?path=Assets/Plugins/Buttr
    ```
 
-Pin versions by appending a tag (e.g. `#v1.3.4` for Core, `#v2.5.1` for Unity). Requires Unity 6.0+.
+Pin versions by appending a tag (e.g. `#v1.4.0` for Core, `#v3.0.0` for Unity). Requires Unity 6.0+.
 
 ## Getting started
 
@@ -66,7 +66,7 @@ Unity-specific guides live in [Docs/Guides/](https://github.com/Crumpet-Labs/But
 | [Getting Started](https://github.com/Crumpet-Labs/Buttr.Unity/blob/main/Docs/Guides/GettingStarted.md) | First project — `Program.cs`, `ProgramLoader`, boot scene |
 | [Conventions](https://github.com/Crumpet-Labs/Buttr.Unity/blob/main/Docs/Guides/Conventions.md) | Suffix-driven architecture |
 | [MonoBehaviour Injection](https://github.com/Crumpet-Labs/Buttr.Unity/blob/main/Docs/Guides/MonoBehaviourInjection.md) | `[Inject]`, `partial`, `SceneInjector`, `MonoInjector` |
-| [ScriptableObjects](https://github.com/Crumpet-Labs/Buttr.Unity/blob/main/Docs/Guides/ScriptableObjects.md) | `ScriptableInjector`, Configurations, Definitions, Handlers |
+| [ScriptableObjects](https://github.com/Crumpet-Labs/Buttr.Unity/blob/main/Docs/Guides/ScriptableObjects.md) | `ScriptableRegistrar`, `ScriptableInjector`, Configurations, Definitions, Handlers, Profiles |
 | [Editor Tooling](https://github.com/Crumpet-Labs/Buttr.Unity/blob/main/Docs/Guides/EditorTooling.md) | Setup project, right-click scaffolding |
 | [Loaders](https://github.com/Crumpet-Labs/Buttr.Unity/blob/main/Docs/Guides/Loaders.md) | `UnityApplicationBoot`, boot pipeline |
 

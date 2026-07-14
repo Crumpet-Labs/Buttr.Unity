@@ -8,9 +8,9 @@ Practical walkthroughs for using Buttr in a Unity 6+ project. For the engine-agn
 |---|---|
 | [Installation](Installation.md) | UPM install, updating, version pinning |
 | [Getting Started](GettingStarted.md) | First project — `Program.cs`, `ProgramLoader`, boot scene |
-| [Conventions](Conventions.md) | Suffix-driven architecture: Models, Presenters, Services, Handlers, etc. |
+| [Conventions](Conventions.md) | Suffix-driven architecture: Models, Services, Handlers, etc. |
 | [MonoBehaviour Injection](MonoBehaviourInjection.md) | `[Inject]`, `partial`, `SceneInjector`, `MonoInjector` |
-| [ScriptableObjects](ScriptableObjects.md) | `ScriptableInjector`, Configurations, Definitions, Handlers |
+| [ScriptableObjects](ScriptableObjects.md) | `ScriptableRegistrar`, `ScriptableInjector`, Configurations, Definitions, Handlers, Profiles |
 | [Editor Tooling](EditorTooling.md) | `Tools > Buttr > Setup Project`, right-click scaffolding |
 | [Loaders](Loaders.md) | `UnityApplicationBoot`, `UnityApplicationLoaderBase`, the boot pipeline |
 

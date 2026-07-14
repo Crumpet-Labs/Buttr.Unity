@@ -4,6 +4,28 @@ All notable changes to Buttr will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-07-07
+
+ScriptableObject injection. ScriptableObjects can now be `[Inject]` targets, resolved from the application container at boot — plus the Profile archetype and a round of analyzer false-positive fixes.
+
+### Added
+
+- **`Buttr.Unity.Injection.ScriptableInjector`** — boot-time injection driver for ScriptableObjects. Expose as a `[SerializeField]` on a Loader, drag injectable assets into its list, call `InjectAll()` after the application container is built. Resets `IInjectable.Injected` each boot so disabled-domain-reload editors and CoreCLR players re-inject cleanly.
+- **`InjectionProcessorUnityExtensions.Inject(ScriptableObject)`** — on-demand injection into a single ScriptableObject.
+- **Source generator accepts ScriptableObjects** — `partial` ScriptableObjects with `[Inject]` fields get the generated `IInjectable` implementation, exactly like MonoBehaviours. BUTTR011 updated to match.
+- **BUTTR020** (error) — scoped `[Inject("key")]` on a ScriptableObject. A persistent asset outlives scene scopes, so scoped injection would dangle; the code fix removes the scope argument. (Numbered 020 because BUTTR012–019 are allocated to Buttr.Core rules.)
+- **BUTTR007/BUTTR008 false-positive fixes** — `.As<TAlias>()` aliases now count as resolvable, and both rules suppress when the compilation contains opaque registration sources (`Use*Package()` extensions and other `IConfigurableCollection`-returning helpers).
+- **Profile archetype** — self-contained ScriptableObject bundling data and its own interpretation logic. Documented in the Conventions and ScriptableObjects guides; scaffolding via `Add to Package > Logic > Profile` and a Profiles toggle in the New Package popup.
+- Core Loader scaffolding template now emits a `ScriptableInjector` alongside the registrar and calls `InjectAll()` after `Build()`.
+
+### Changed
+
+- **BREAKING: `Buttr.Unity.ScriptableInjector` → `Buttr.Unity.Injection.ScriptableRegistrar`.** The class that registers ScriptableObject assets as container sources is renamed; the `ScriptableInjector` name now belongs to the new injection driver.
+
+### Migration
+
+- Change the field **type** `ScriptableInjector` → `ScriptableRegistrar` on your Loaders and Instances, and update `using Buttr.Unity;` → `using Buttr.Unity.Injection;` where needed. Keep the field name: the inner `m_Objects` list is serialized by name, so dragged-in asset lists survive the type swap. If you also rename your field, add `[FormerlySerializedAs]`.
+
 ## [2.5.3] - 2026-05-18
 
 Patch release. resolved potential issue with InjectionProcessorUnityExtensions... again... 

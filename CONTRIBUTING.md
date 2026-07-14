@@ -15,7 +15,7 @@ It covers:
 ## Where work belongs
 
 - **Engine-agnostic** changes (DI container, builders, resolvers, lifetimes, scopes, analyzer rules that aren't Unity-specific) → [Buttr.Core](https://github.com/Crumpet-Labs/Buttr.Core).
-- **Unity-specific** changes (MonoBehaviour injection, `SceneInjector`/`MonoInjector`, `ScriptableInjector`, `UnityApplicationBoot`/`Loader`, the `[Inject]` source generator, editor scaffolding) → this repository.
+- **Unity-specific** changes (MonoBehaviour and ScriptableObject injection, `SceneInjector`/`MonoInjector`, `ScriptableRegistrar`/`ScriptableInjector`, `UnityApplicationBoot`/`Loader`, the `[Inject]` source generator, editor scaffolding) → this repository.
 
 ## Reporting issues
 

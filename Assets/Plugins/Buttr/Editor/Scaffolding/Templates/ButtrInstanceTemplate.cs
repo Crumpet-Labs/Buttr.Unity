@@ -16,6 +16,7 @@ namespace Buttr.Editor.Scaffolding {
             return m_Type switch {
                 PackageType.UI => $@"using Buttr.Core;
 using Buttr.Unity;
+using Buttr.Unity.Injection;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -23,7 +24,7 @@ namespace {m_Ns} {{
     [ DefaultExecutionOrder(-10000) ]
     public sealed class {m_Name}Instance : MonoBehaviour {{
         [Header(""Scriptable Objects"")]
-        [SerializeField] private ScriptableInjector m_Injector;
+        [SerializeField] private ScriptableRegistrar m_Registrar;
 
         [Header(""References"")]
         [SerializeField] private UIDocument m_UIDocument;
@@ -32,8 +33,8 @@ namespace {m_Ns} {{
 
         private void Awake() {{
             var builder = new ScopeBuilder({m_Name}Package.Scope);
-            
-            m_Injector.Inject(builder);
+
+            m_Registrar.Inject(builder);
 
             builder.Use{m_Name}()
                 .WithFactory<{m_Name}View>(() => new {m_Name}View(m_UIDocument));

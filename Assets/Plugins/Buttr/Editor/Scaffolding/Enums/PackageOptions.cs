@@ -12,5 +12,6 @@ namespace Buttr.Editor.Scaffolding {
         Exceptions     = 1 << 5,
         Definitions    = 1 << 6,
         Controller    = 1 << 7,
+        Profiles       = 1 << 8,
     }
 }

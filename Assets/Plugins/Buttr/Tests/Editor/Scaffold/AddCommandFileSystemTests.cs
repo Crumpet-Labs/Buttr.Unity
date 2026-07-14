@@ -40,12 +40,6 @@ namespace Buttr.Editor.Tests.Scaffolding {
         }
 
         [Test]
-        public void AddPresenterCommand_CreatesPresenterFile() {
-            new AddPresenterCommand(m_PackageRoot, false).Execute();
-            Assert.That(File.Exists(Path.Combine(m_PackageRoot, "Components", "InventoryPresenter.cs")), Is.True);
-        }
-
-        [Test]
         public void AddMediatorCommand_CreatesMediatorFile() {
             new AddMediatorCommand(m_PackageRoot, false).Execute();
             Assert.That(File.Exists(Path.Combine(m_PackageRoot, "Components", "InventoryMediator.cs")), Is.True);
@@ -121,6 +115,12 @@ namespace Buttr.Editor.Tests.Scaffolding {
         public void AddHandlerCommand_CreatesHandlerFile() {
             new AddHandlerCommand(m_PackageRoot, false).Execute();
             Assert.That(File.Exists(Path.Combine(m_PackageRoot, "Handlers", "InventoryHandler.cs")), Is.True);
+        }
+
+        [Test]
+        public void AddProfileCommand_CreatesProfileFile() {
+            new AddProfileCommand(m_PackageRoot, false).Execute();
+            Assert.That(File.Exists(Path.Combine(m_PackageRoot, "Profiles", "InventoryProfile.cs")), Is.True);
         }
 
         [Test]

@@ -91,7 +91,7 @@ For details on injection setup see [MonoBehaviour Injection](MonoBehaviourInject
 
 - **Organise by feature**, not by file type. See [Conventions](Conventions.md).
 - **Scaffold new packages** via right-click → `Buttr > Packages > New Feature`. See [Editor Tooling](EditorTooling.md).
-- **Inject data** from ScriptableObjects. See [ScriptableObjects](ScriptableObjects.md).
+- **Register and inject ScriptableObjects** — as container sources, or as `[Inject]` targets. See [ScriptableObjects](ScriptableObjects.md).
 - **Add boot-time setup** beyond the single `Program.cs`. See [Loaders](Loaders.md).
 
 ## Core concepts in one page

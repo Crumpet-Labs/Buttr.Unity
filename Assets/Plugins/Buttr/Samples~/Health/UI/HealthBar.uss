@@ -1,0 +1,26 @@
+.health-root {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    width: 260px;
+}
+
+.health-track {
+    height: 26px;
+    background-color: rgb(35, 35, 40);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.health-fill {
+    height: 100%;
+    width: 100%;
+    background-color: rgb(220, 70, 70);
+}
+
+.health-label {
+    margin-top: 6px;
+    color: rgb(235, 235, 235);
+    font-size: 15px;
+    -unity-font-style: bold;
+}
