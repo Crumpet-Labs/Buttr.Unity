@@ -3,32 +3,10 @@
    version="1.1"
    viewBox="0.00 0.00 401.00 437.00"
    id="svg84"
-   sodipodi:docname="Pasted-20260210-204146.svg"
-   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs84" />
-  <sodipodi:namedview
-     id="namedview84"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="2.7757437"
-     inkscape:cx="267.13561"
-     inkscape:cy="180.6723"
-     inkscape:window-width="2560"
-     inkscape:window-height="1494"
-     inkscape:window-x="-11"
-     inkscape:window-y="-11"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg84" />
   <g
      stroke-width="2.00"
      fill="none"
@@ -501,16 +479,13 @@
   <path
      style="fill:#a86c41;fill-opacity:1;stroke:#a86c41;stroke-opacity:1"
      d="m 280.37644,296.3353 17.24429,-8.77722 7.14808,-10.79819 -27.25374,15.20877 z"
-     id="path86"
-     sodipodi:nodetypes="ccccc" />
+     id="path86" />
   <path
      style="fill:#bd8053;fill-opacity:1;stroke:#bd8053;stroke-opacity:1"
      d="m 297.35108,287.60709 c 6.19118,-3.71341 12.09925,-6.57749 18.59638,-11.20878 l 5.92283,-5.41333 -5.73176,-1.46479 -4.96753,3.63012 -6.36863,3.56642 c -2.25025,3.63012 -2.89009,5.64258 -7.45129,10.89036 z"
-     id="path87"
-     sodipodi:nodetypes="ccccccc" />
+     id="path87" />
   <path
      style="fill:#11181f;fill-opacity:1;stroke:#11181f;stroke-opacity:1"
      d="m 281.5912,296.81234 c 0,0 11.36614,-6.98117 25.84341,-13.69097 3.55187,-1.64619 6.49612,-3.86538 8.84785,-5.51333 5.72804,-4.01385 5.10813,-3.06616 5.16292,-3.17708 1.37633,-2.7862 5.3139,13.96022 5.3139,13.96022 l -5.49403,16.03174 -2.92714,8.15097 -2.38675,28.46084 -16.88737,2.02648 -19.40921,-4.00793 -1.35099,-21.07544 6.03442,-13.96022 z"
-     id="path89"
-     sodipodi:nodetypes="csssccccccccc" />
+     id="path89" />
 </svg>

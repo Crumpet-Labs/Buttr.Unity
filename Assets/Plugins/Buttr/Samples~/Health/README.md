@@ -1,6 +1,6 @@
 # Health — a Buttr sample
 
-The smallest *complete* Buttr feature: a clamped health value, a UI Toolkit bar, and a key to take damage. It shows the whole loop — **boot → inject → Service mutates Model → View reads** — in one place, and it's the code the Buttr guides draw their Unity examples from.
+The smallest *complete* Buttr feature: a clamped health value, a UI Toolkit bar, and a key to take damage. It shows the whole loop — **boot → inject → Service mutates Model → View reads** — in one place.
 
 ## What it shows
 

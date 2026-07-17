@@ -2,7 +2,7 @@ using System;
 
 namespace Buttr.Core {
     /// <summary>
-    /// >> TEMPLATE FOR Entity ID's
+    /// Example Identifier.
     /// </summary>
     /// <remarks>
     /// Think Domain Driven Design with unique Identifiers when crafting Identifiers

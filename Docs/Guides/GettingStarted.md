@@ -74,16 +74,23 @@ using UnityEngine;
 
 namespace YourGame {
     public partial class Welcome : MonoBehaviour {
-        [Inject] private IGreeter m_Greeter;
+        [Inject] private IGreeter i_Greeter;
 
         private void Start() {
-            Debug.Log(m_Greeter.Greet("world"));
+            Debug.Log(i_Greeter.Greet("world"));
         }
     }
 }
 ```
 
-Drop the `Welcome` component on a GameObject in any scene, attach a `SceneInjector` to the scene's boot GameObject (or to an object that lives before `Awake`), and press Play. Console shows `Hello, world!`.
+`SceneInjector` injects at `Awake`, but the boot pipeline builds the container in `Start` — `Awake` runs first, so an injected object placed in the boot scene resolves against a container that doesn't exist yet. Keep injected objects out of the boot scene and enter them **after** boot:
+
+1. Make a second scene — call it `Game` — and drop the `Welcome` component plus a `SceneInjector` into it.
+2. Create a `SceneLoader` asset via `Assets > Create > Buttr > Loaders > Scene`, and set its **Scene Name** to `Game`.
+3. On the boot scene's `Boot` object, add that `SceneLoader` to `UnityApplicationBoot`'s **Application Loaders** list, after `ProgramLoader`.
+4. Add both scenes to **Build Settings** with the boot scene first, then press Play from the boot scene. Console shows `Hello, world!`.
+
+The boot iterates its loaders in order: `ProgramLoader` builds the container, then `SceneLoader` loads `Game` additively — so its `SceneInjector` wakes with a ready container.
 
 For details on injection setup see [MonoBehaviour Injection](MonoBehaviourInjection.md).
 

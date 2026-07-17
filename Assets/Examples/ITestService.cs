@@ -9,18 +9,18 @@ namespace Examples {
     public interface ITestService2 { }
 
     public sealed class TestService2 : ITestService2 {
-        private readonly ITestService testService;
+        private readonly ITestService m_TestService;
 
         public TestService2(ITestService testService) {
-            this.testService = testService;
+            m_TestService = testService;
         }
     }
     
     public sealed class TestService3  {
-        private readonly ITestService2 testService;
+        private readonly ITestService2 m_TestService;
 
         public TestService3(ITestService2 testService) {
-            this.testService = testService;
+            m_TestService = testService;
         }
     }
 

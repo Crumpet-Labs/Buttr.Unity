@@ -4,9 +4,25 @@ All notable changes to Buttr will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2026-07-17
+
+Tracks [Buttr.Core 1.4.1](https://github.com/Crumpet-Labs/Buttr.Core/releases/tag/v1.4.1). Documentation and project-hygiene release — no runtime API changes.
+
+### Fixed
+
+- **The quick start no longer crashes.** Both the README and the Getting Started guide told you to add a `SceneInjector` to the boot scene and press Play — which throws: injection runs at `Awake`, the container isn't built until `Start`. They now teach the two-scene pattern the Health sample validates, using the built-in `SceneLoader`.
+- **The Loaders guide documents the shipped `SceneLoader`** and its custom-loader example no longer collides with it.
+- The MonoBehaviour Injection guide's "full catalogue" link now points at the Unity analyzer table rather than the Core one, which contains none of the Unity rules.
+
+### Changed
+
+- **Dependency: `com.crumpetlabs.buttr` 1.4.0 → 1.4.1.** Package Manager won't auto-update a git dependency — bump the pin in your manifest if you track versions explicitly.
+- The landing pages now surface what actually ships: the nine bundled analyzers, the Health sample, scoped injection, `MonoInjector` for runtime-spawned prefabs, the `ScriptableRegistrar`/`ScriptableInjector` split, and the full scaffolder.
+- Repo hygiene: Unity's leftover URP template folder, a scratch scene, and the regenerable `UIElementsSchema/` no longer ship; licence copyright normalised to Crumpet Labs; the bug-report template asks for Buttr/Unity versions instead of browsers.
+
 ## [3.0.0] - 2026-07-07
 
-ScriptableObject injection. ScriptableObjects can now be `[Inject]` targets, resolved from the application container at boot — plus the Profile archetype and a round of analyzer false-positive fixes.
+Tracks [Buttr.Core 1.4.0](https://github.com/Crumpet-Labs/Buttr.Core/releases/tag/v1.4.0). ScriptableObject injection. ScriptableObjects can now be `[Inject]` targets, resolved from the application container at boot — plus the Profile archetype and a round of analyzer false-positive fixes.
 
 ### Added
 
@@ -21,26 +37,28 @@ ScriptableObject injection. ScriptableObjects can now be `[Inject]` targets, res
 ### Changed
 
 - **BREAKING: `Buttr.Unity.ScriptableInjector` → `Buttr.Unity.Injection.ScriptableRegistrar`.** The class that registers ScriptableObject assets as container sources is renamed; the `ScriptableInjector` name now belongs to the new injection driver.
+- **`package.json` dependency on `com.crumpetlabs.buttr` bumped to `1.4.0`** (from `1.3.4`) — see Buttr.Core's [1.4.0 changelog](https://github.com/Crumpet-Labs/Buttr.Core/blob/main/CHANGELOG.md).
 
 ### Migration
 
 - Change the field **type** `ScriptableInjector` → `ScriptableRegistrar` on your Loaders and Instances, and update `using Buttr.Unity;` → `using Buttr.Unity.Injection;` where needed. Keep the field name: the inner `m_Objects` list is serialized by name, so dragged-in asset lists survive the type swap. If you also rename your field, add `[FormerlySerializedAs]`.
+- Update Buttr.Core to `1.4.0` (`#v1.4.0`) before upgrading — Package Manager doesn't bump git-URL dependencies for you.
 
 ## [2.5.3] - 2026-05-18
 
-Patch release. resolved potential issue with InjectionProcessorUnityExtensions... again... 
+Patch release. Follow-up to 2.5.2, reworking the same guard in `InjectionProcessorUnityExtensions`.
 
 ### Fixed
 
-- **'InjectionProcessorUnityExtensions.cs'** reverted TryGetCheck replaced with gameobject check
+- **`InjectionProcessorUnityExtensions.cs` — the `TryGet` guard added in 2.5.2 was reverted and replaced with a GameObject check.** The intent is unchanged from 2.5.2: reject a null or non-`MonoBehaviour` instance before it reaches `InjectionProcessor.Inject`. The `TryGet` form was dropped in favour of checking the GameObject directly.
 
 ## [2.5.2] - 2026-05-18
 
-Patch release. resolved potential issue with InjectionProcessorUnityExtensions
+Patch release. `InjectionProcessorUnityExtensions` could pass a null instance through to injection.
 
-### Fixed 
+### Fixed
 
-- **'InjectionProcessorUnityExtensions.cs'** added try get to MonoBehaviour check, to prevent null passing
+- **`InjectionProcessorUnityExtensions.cs` — added a `TryGet` to the MonoBehaviour check.** The MonoBehaviour test on the hierarchy-walking entry points didn't stop a null instance reaching `InjectionProcessor.Inject`. Superseded by 2.5.3's GameObject check.
 
 ## [2.5.1] - 2026-05-08
 

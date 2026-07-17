@@ -12,6 +12,9 @@
 /[Uu]ser[Ss]ettings/
 *.log
 
+# Unity-generated UIElements schema — regenerate via Assets > UIElements Schema > Update
+/[Uu][Ii][Ee]lements[Ss]chema/
+
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be commited to version control.
 *.blend1
 *.blend1.meta

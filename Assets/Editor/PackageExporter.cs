@@ -10,8 +10,8 @@ namespace Buttr.Editor {
                 "Assets/Plugins/Buttr", 
             };
 
-            var packageName = "Buttr.unitypackage"; // <<< IMPORTANT: Desired name for your package file
-            var outputPath = Path.Combine(Application.dataPath, "..", packageName); // Path to save outside Assets
+            var packageName = "Buttr.unitypackage";
+            var outputPath = Path.Combine(Application.dataPath, "..", packageName);
 
             AssetDatabase.ExportPackage(
                 projectContent,

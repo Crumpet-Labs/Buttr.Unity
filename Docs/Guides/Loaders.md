@@ -69,15 +69,28 @@ public static class Program {
 
 This separation — composition in pure C# (`Program.cs`), lifecycle bridge in a ScriptableObject (`ProgramLoader`) — lets you test composition without Unity, and swap loader behaviour without touching composition.
 
+## SceneLoader — the built-in scene loader
+
+Pulling a scene in at boot is common enough that the package ships a loader for it. Create the asset via `Assets > Create > Buttr > Loaders > Scene` and configure two serialized fields in the Inspector:
+
+| Field | Purpose |
+|-------|---------|
+| **Scene Name** | The scene to load, by name. It must be in build settings. |
+| **Load Mode** | `Additive` (the default) keeps the boot scene alive; `Single` replaces it — which unloads the boot GameObject and fires `UnloadAsync` early unless `m_DontDestroyOnLoad` is set. |
+
+`LoadAsync` awaits `SceneManager.LoadSceneAsync` frame by frame until the operation reports done, so the **next loader doesn't start until the scene is fully loaded**. Order it after `ProgramLoader` — the incoming scene's MonoBehaviours inject against the container `ProgramLoader` built, so the registrations have to exist first.
+
+`SceneLoader` lives in the `Buttr.Unity` namespace and ships with the package. Don't name your own loader `SceneLoader` — with `using Buttr.Unity;` in the file, you'll get an ambiguous reference.
+
 ## Custom loaders
 
 For features that need their own boot-time setup beyond `Program.cs`, inherit from `UnityApplicationLoaderBase`:
 
 ```csharp
-[CreateAssetMenu(fileName = "SceneLoader",
-                 menuName = "Game/Scene/Loader")]
-public sealed class SceneLoader : UnityApplicationLoaderBase {
-    [SerializeField] private SceneConfiguration m_Config;
+[CreateAssetMenu(fileName = "RemoteConfigLoader",
+                 menuName = "Game/RemoteConfig/Loader")]
+public sealed class RemoteConfigLoader : UnityApplicationLoaderBase {
+    [SerializeField] private RemoteConfigConfiguration m_Config;
 
     private ApplicationContainer m_Container;
 
@@ -85,7 +98,7 @@ public sealed class SceneLoader : UnityApplicationLoaderBase {
         var builder = new ApplicationBuilder();
 
         builder.Resolvers.AddSingleton(m_Config);
-        builder.Resolvers.AddSingleton<ISceneService, SceneService>();
+        builder.Resolvers.AddSingleton<IRemoteConfigService, RemoteConfigService>();
 
         m_Container = builder.Build();
         return AwaitableUtility.CompletedTask;
@@ -98,7 +111,7 @@ public sealed class SceneLoader : UnityApplicationLoaderBase {
 }
 ```
 
-Create the asset (`Right-click > Create > Game > Scene > Loader`), drop it into the Boot GameObject's loader list after `ProgramLoader`.
+Create the asset (`Right-click > Create > Game > RemoteConfig > Loader`), drop it into the Boot GameObject's loader list after `ProgramLoader`.
 
 ## Loader ordering
 

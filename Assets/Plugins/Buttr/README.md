@@ -3,7 +3,7 @@
 A lightweight dependency-injection container with an opinionated architecture for Unity 6+. Adds MonoBehaviour, ScriptableObject, and scene-walking integration on top of the engine-agnostic [Buttr.Core](https://github.com/Crumpet-Labs/Buttr.Core) library.
 
 - **Source-generated injection** — `[Inject]` fields on `partial` MonoBehaviours and ScriptableObjects. The field-injection path runs zero reflection at runtime; container build itself uses minimal reflection (constructor scanning, alias mapping).
-- **Roslyn analyzers** — compile-time diagnostics for duplicate registrations, missing dependencies, alias mismatches, and more.
+- **Roslyn analyzers** — 18 compile-time rules (9 in Buttr.Core, 9 Unity-specific) for duplicate registrations, missing dependencies, alias mismatches, `[Inject]` on a non-`partial` class, and more — half of them with one-click code fixes.
 - **Suffix-driven architecture** — Models, Services, Handlers, Behaviours. Every class name tells you what it does.
 - **Editor scaffolding** — one-click project setup, right-click to scaffold conventions-compliant packages.
 
@@ -23,14 +23,20 @@ Buttr.Unity depends on Buttr.Core. UPM doesn't auto-resolve git-URL dependencies
    https://github.com/Crumpet-Labs/Buttr.Unity.git?path=Assets/Plugins/Buttr
    ```
 
-Pin versions by appending a tag (e.g. `#v1.4.0` for Core, `#v3.0.0` for Unity). Requires Unity 6.0+.
+Pin versions by appending a tag (e.g. `#v1.4.1` for Core, `#v3.0.1` for Unity). Requires Unity 6.0+.
 
 ## Getting started
 
-1. `Tools > Buttr > Setup Project` — scaffolds `_Project/`, `Main.unity` boot scene, `Program.cs`, `ProgramLoader`.
-2. Open `Program.cs`, register a service:
+1. `Tools > Buttr > Setup Project` — scaffolds `_Project/`, a `Main.unity` boot scene, `Program.cs`, and `ProgramLoader`.
+2. Register a service in `Program.cs`. `Main` receives the parsed launch arguments from `CMDArgs.Read()` — ignore the parameter until you need to branch on them:
 
    ```csharp
+   public interface IGreeter { string Greet(string name); }
+
+   public sealed class Greeter : IGreeter {
+       public string Greet(string name) => $"Hello, {name}!";
+   }
+
    public static class Program {
        public static ApplicationContainer Main() => Main(CMDArgs.Read());
 
@@ -46,15 +52,27 @@ Pin versions by appending a tag (e.g. `#v1.4.0` for Core, `#v3.0.0` for Unity). 
 
    ```csharp
    public partial class Welcome : MonoBehaviour {
-       [Inject] private IGreeter m_Greeter;
+       [Inject] private IGreeter i_Greeter;
 
-       private void Start() => Debug.Log(m_Greeter.Greet("world"));
+       private void Start() => Debug.Log(i_Greeter.Greet("world"));
    }
    ```
 
-4. Add a `SceneInjector` to your scene, press Play.
+4. Put `Welcome` in a **second scene**, not the boot scene. Buttr injects `[Inject]` fields at `Awake`, but the boot scene doesn't build the container until `Start` — so an injected object has to be entered *after* boot. Add a `SceneInjector` to the second scene (it fills `[Inject]` fields on entry), create a `SceneLoader` asset (`Assets > Create > Buttr > Loaders > Scene`) set to that scene's name, and add it to `UnityApplicationBoot`'s **Application Loaders** list after `ProgramLoader`. Put both scenes in Build Settings, boot scene first, and press Play from the boot scene — the Console prints `Hello, world!`.
 
 Full walkthrough: [Docs/Guides/GettingStarted.md](https://github.com/Crumpet-Labs/Buttr.Unity/blob/main/Docs/Guides/GettingStarted.md).
+
+## Common patterns
+
+- **Runtime-spawned prefabs** — put a `MonoInjector` on the prefab root and pick a `MonoInjectStrategy` (`Mono` / `GameObject` / `GameObjectAndChildren`); it fills the `[Inject]` fields on `Instantiate` → `Awake`, then removes itself.
+- **Entering gameplay scenes after boot** — a `SceneLoader` asset in `UnityApplicationBoot`'s loader list, after `ProgramLoader`, loads a build-settings scene once the container is built, so its injectors run against a ready container.
+- **Scoped injection** — `[Inject(Scopes.Inventory)]` resolves from a named scope instead of the application container. Define scope keys as `const string`; the `BUTTR009` analyzer flags magic-string keys.
+
+## Samples
+
+Import via `Window > Package Manager` → **Buttr for Unity** → **Samples** → **Import**.
+
+**Health** — the smallest *complete* Buttr feature, and the conventions applied end-to-end: a Model, a Service that owns the writes, a designer-tunable Configuration, a View that only reads, an `[Inject]` Controller, and a Loader that builds the container at boot. Read it after Getting Started, when you want the whole **boot → inject → Service mutates Model → View reads** loop in one place rather than a snippet at a time. Requires a short two-scene setup — see the sample's README.
 
 ## Documentation
 
@@ -72,6 +90,10 @@ Unity-specific guides live in [Docs/Guides/](https://github.com/Crumpet-Labs/But
 
 Engine-agnostic core (aliasing, `All<T>()`, `DIBuilder`, `Hidden`, analyzer catalogue): [Buttr.Core docs](https://github.com/Crumpet-Labs/Buttr.Core/tree/main/Docs).
 
+## Changelog
+
+[CHANGELOG.md](https://github.com/Crumpet-Labs/Buttr.Unity/blob/main/Assets/Plugins/Buttr/CHANGELOG.md) ships with the package — each entry names the Buttr.Core version it tracks. Upgrading from 2.x? 3.0.0 renamed `ScriptableInjector` → `ScriptableRegistrar`; see its migration note in the changelog.
+
 ## License
 
-MIT — see [LICENSE.md](LICENSE.md).
+MIT — see [LICENSE.md](https://github.com/Crumpet-Labs/Buttr.Unity/blob/main/Assets/Plugins/Buttr/LICENSE.md).

@@ -133,7 +133,7 @@ Constructor parameters are resolved from the container the type is registered in
 | `BUTTR011` | `[Inject]` on a class that is neither a MonoBehaviour nor a ScriptableObject |
 | `BUTTR020` | Scoped `[Inject("…")]` on a ScriptableObject — ScriptableObjects resolve application-lifetime only |
 
-Full catalogue in the [Buttr.Core Analyzers doc](https://github.com/Crumpet-Labs/Buttr.Core/blob/main/Docs/Analyzers.md).
+Full catalogue of the nine Unity-side rules in the [Buttr.Unity.SourceGeneration README](https://github.com/Crumpet-Labs/Buttr.Unity.SourceGeneration/blob/main/README.md) — that's where the `[Inject]` generator and its analyzers live. The Core-side rules, `BUTTR004` among them, are catalogued in the [Buttr.Core Analyzers doc](https://github.com/Crumpet-Labs/Buttr.Core/blob/main/Docs/Analyzers.md).
 
 ## Debug logging
 

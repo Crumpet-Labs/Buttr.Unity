@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Buttr.Core {
-    // [CreateAssetMenu(fileName = "MonoInjectTesting", menuName = "Buttr/Examples/Loaders/MonoTesting", order = 0)]
     public sealed class MonoInjectTestLoader : UnityApplicationLoaderBase {
         private GameObject m_MonoInjectObj;
         private GameObject m_GameObjectInjectObj;
@@ -33,7 +32,7 @@ namespace Buttr.Core {
                     passed = inject.ConfirmInjections();
             }
             
-            Debug.Log($">>>>> MONO TESTING COMPLETE :: PASSED {passed} <<<<<");
+            Debug.Log($"MonoBehaviour injection test complete. Passed: {passed}");
         }
 
         public override Awaitable UnloadAsync() {

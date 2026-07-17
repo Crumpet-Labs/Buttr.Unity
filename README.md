@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>A lightweight dependency-injection container for Unity 6+.</strong>
+  <strong>The Unity bridge for Buttr — source-generated injection, scene walking, and editor scaffolding on top of the engine-agnostic DI container.</strong>
 </p>
 
 <p align="center">
@@ -12,7 +12,15 @@
   <a href="https://unity.com"><img src="https://img.shields.io/badge/Unity-6+-black?style=flat-square&logo=unity" alt="Unity 6+"></a>
 </p>
 
-Buttr adds Unity-specific integration on top of the engine-agnostic [Buttr.Core](https://github.com/Crumpet-Labs/Buttr.Core) DI library: source-generated MonoBehaviour and ScriptableObject injection, ScriptableObject registration, scene-walking injectors, and editor scaffolding for a suffix-driven architecture.
+Buttr adds Unity-specific integration on top of the engine-agnostic [Buttr.Core](https://github.com/Crumpet-Labs/Buttr.Core) DI container:
+
+- **Source-generated `[Inject]`** — `partial` MonoBehaviours and ScriptableObjects get their injection plumbing at compile time; the field-set path runs zero runtime reflection.
+- **Scene walking** — `SceneInjector` injects every `[Inject]` object in a scene; `MonoInjector` targets a single object or prefab instance.
+- **ScriptableObject wiring** — register assets as container sources with `ScriptableRegistrar`, or make an asset an `[Inject]` target with `ScriptableInjector`.
+- **Scoped injection** — `[Inject("key")]` resolves from a named scope instead of the application container.
+- **Boot pipeline** — `UnityApplicationBoot` builds your container from `Loader` assets; the built-in `SceneLoader` enters gameplay scenes once it's ready.
+- **Nine compile-time analyzers** — `BUTTR001`/`002`/`003`/`005`/`007`/`008`/`009`/`011`/`020` flag a missing `partial`, `[Inject]` on a non-MonoBehaviour, magic-string scope keys, and more. Full table: [Buttr.Unity.SourceGeneration README](https://github.com/Crumpet-Labs/Buttr.Unity.SourceGeneration/blob/main/README.md).
+- **Editor scaffolding** — `Tools > Buttr > Setup Project` wires the boot pipeline; a right-click `Buttr > Packages` menu adds whole packages (New Feature/Core/UI) and 16 `Add to Package` archetypes (Model, Service, Controller, Handler, …) into them.
 
 ## Installation
 
@@ -30,7 +38,7 @@ Buttr.Unity depends on Buttr.Core. UPM doesn't auto-resolve git-URL dependencies
    https://github.com/Crumpet-Labs/Buttr.Unity.git?path=Assets/Plugins/Buttr
    ```
 
-Pin versions by appending a tag (e.g. `#v1.4.0` for Core, `#v3.0.0` for Unity). Requires Unity 6.0+.
+Pin versions by appending a tag (e.g. `#v1.4.1` for Core, `#v3.0.1` for Unity). Requires Unity 6.0+.
 
 ## Getting started
 
@@ -47,13 +55,17 @@ Pin versions by appending a tag (e.g. `#v1.4.0` for Core, `#v3.0.0` for Unity). 
 
    ```csharp
    public partial class Welcome : MonoBehaviour {
-       [Inject] private IGreeter m_Greeter;
+       [Inject] private IGreeter i_Greeter;
    }
    ```
 
-4. Add a `SceneInjector` to your scene, press Play.
+4. The container is built at boot in `Start`, but a `SceneInjector` injects at `Awake` — so injected objects can't sit in the boot scene. Put `Welcome` and a `SceneInjector` in a **second scene**, then load it after boot: create a `SceneLoader` asset (`Assets > Create > Buttr > Loaders > Scene`) pointing at that scene and add it to the boot object's **Application Loaders** after `ProgramLoader`. Add both scenes to Build Settings (boot first) and press Play.
 
 Full walkthrough: [Docs/Guides/GettingStarted.md](Docs/Guides/GettingStarted.md).
+
+## Samples
+
+Import the **Health** sample from `Window > Package Manager > Buttr for Unity > Samples`. It's the smallest complete feature — a clamped health value with a UI Toolkit bar — and shows the whole stack in one place: a `Model`, a write-owning `Service`, a designer `Configuration`, a `View`, an `[Inject]` `Controller`, and the `Loader` that builds the container at boot. It ships as scripts only; its README walks you through the two-scene setup the quickstart describes.
 
 ## Documentation
 
@@ -68,6 +80,10 @@ Full walkthrough: [Docs/Guides/GettingStarted.md](Docs/Guides/GettingStarted.md)
 | Boot pipeline | [Loaders](Docs/Guides/Loaders.md) |
 
 Engine-agnostic core (aliasing, `All<T>()`, `DIBuilder`, `Hidden`, analyzer catalogue): [Buttr.Core docs](https://github.com/Crumpet-Labs/Buttr.Core/tree/main/Docs).
+
+## Changelog
+
+Release history ships with the package: [Assets/Plugins/Buttr/CHANGELOG.md](Assets/Plugins/Buttr/CHANGELOG.md). Entries that change the tracked Buttr.Core version name it.
 
 ## Contributing
 
