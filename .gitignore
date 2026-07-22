@@ -113,3 +113,8 @@ InitTestScene*.unity*
 
 # AI tooling local config — never commit
 .claude/
+
+# monorepo editing project — track despite the blanket *.csproj rule
+!Buttr.Unity.Editing.csproj
+/obj/
+/bin/

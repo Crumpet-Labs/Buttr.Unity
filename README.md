@@ -22,6 +22,8 @@ Buttr adds Unity-specific integration on top of the engine-agnostic [Buttr.Core]
 - **Nine compile-time analyzers** — `BUTTR001`/`002`/`003`/`005`/`007`/`008`/`009`/`011`/`020` flag a missing `partial`, `[Inject]` on a non-MonoBehaviour, magic-string scope keys, and more. Full table: [Buttr.Unity.SourceGeneration README](https://github.com/Crumpet-Labs/Buttr.Unity.SourceGeneration/blob/main/README.md).
 - **Editor scaffolding** — `Tools > Buttr > Setup Project` wires the boot pipeline; a right-click `Buttr > Packages` menu adds whole packages (New Feature/Core/UI) and 16 `Add to Package` archetypes (Model, Service, Controller, Handler, …) into them.
 
+**Find the full stack on our website:** [crumpetlabs.co.uk/buttr](https://crumpetlabs.co.uk/buttr)
+
 ## Installation
 
 Buttr.Unity depends on Buttr.Core. UPM doesn't auto-resolve git-URL dependencies, so install Core **first**, then Unity. In `Window > Package Manager` → `+` → **Install package from git URL**:
